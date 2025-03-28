@@ -1,6 +1,7 @@
 import { configDotenv } from "dotenv";
 import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
+import sequelize from "./config/db";
 import morgan from "morgan"
 import PatientRoutes from "./routes/patient.routes";
 import AnalyticsRoutes from "./routes/analytics.routes";
@@ -32,6 +33,7 @@ app.use((err : Error, req : Request, res : Response, next : NextFunction) => {
     });
   });
 
-app.listen(PORT, ()=>{
+app.listen(PORT, async()=>{
+    await sequelize.sync({force : true});
     console.log("Server running on PORT", PORT);
 })

@@ -61,10 +61,6 @@ Patient.init(
     },
     assignedDoctor: {
       type: DataTypes.UUID,
-      references: {
-        model: "Users",
-        key: "id",
-      },
     },
   },
   {

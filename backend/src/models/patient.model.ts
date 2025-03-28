@@ -1,6 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/db";
-
+import VitalSigns from "./vitals.model";
+import LabResult from "./lab.model";
 class Patient extends Model {}
 
 Patient.init(
@@ -73,98 +74,6 @@ Patient.init(
   }
 );
 
-class VitalSigns extends Model {}
-
-VitalSigns.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-    },
-    patientId: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: "Patients",
-        key: "id",
-      },
-    },
-    temperature: {
-      type: DataTypes.FLOAT,
-      allowNull: false,
-    },
-    heartRate: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    respiratoryRate: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    bloodPressure: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    oxygenSaturation: {
-      type: DataTypes.FLOAT,
-      allowNull: false,
-    },
-    recordedAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
-  },
-  {
-    sequelize,
-    modelName: "VitalSigns",
-    timestamps: true,
-  }
-);
-
-class LabResult extends Model {}
-
-LabResult.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-    },
-    patientId: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: "Patients",
-        key: "id",
-      },
-    },
-    testType: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    value: {
-      type: DataTypes.JSON,
-      allowNull: false,
-    },
-    unit: {
-      type: DataTypes.STRING,
-    },
-    normalRange: {
-      type: DataTypes.STRING,
-    },
-    isAbnormal: {
-      type: DataTypes.BOOLEAN,
-    },
-    recordedAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
-  },
-  {
-    sequelize,
-    modelName: "LabResult",
-    timestamps: true,
-  }
-);
 
 Patient.hasMany(VitalSigns, { foreignKey: "patientId" });
 VitalSigns.belongsTo(Patient, { foreignKey: "patientId" });

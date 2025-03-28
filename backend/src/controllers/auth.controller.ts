@@ -29,7 +29,7 @@ export const Register = async(req : Request, res : Response, next : NextFunction
             email : email
         }});
         if(existingUser){
-            return res.status(400).json({
+            res.status(400).json({
                 success : false,
                 message : "User with this email already exists"
             });
@@ -54,7 +54,7 @@ export const Login = async(req : Request, res : Response, next : NextFunction)=>
     try{
         const {email, password} = req.body;
         if(!email || !password){
-            return res.status(400).json({
+            res.status(400).json({
                 success : false,
                 message : "Please provide email and password"
             });
@@ -64,21 +64,21 @@ export const Login = async(req : Request, res : Response, next : NextFunction)=>
             email : email
         }});
         if(!user){
-            return res.status(404).json({
+            res.status(404).json({
                 success : false,
                 message : "User not found"
             });
         }
 
-        const isCorrect = await bcrypt.compare(password, user.getDataValue("password"));
+        const isCorrect = await bcrypt.compare(password, user!.getDataValue("password"));
         if(!isCorrect){
-            return res.status(401).json({
+            res.status(401).json({
                 success : false,
                 message : "Incorrect email or password"
             });
         }
 
-        createSendToken(user, 200, res);
+        createSendToken(user!, 200, res);
     }catch(err){
         next(err);
     }
@@ -109,22 +109,22 @@ export const updatePassword = async(req : Request, res : Response, next : NextFu
         const {curretPassword, newPassword} = req.body;
         const user = await User.findByPk(req.user.id);
         if(!user){
-            return res.status(404).json({
+            res.status(404).json({
                 success : false,
                 message : "User not found"
             });
         }
-        const isCorrect = await bcrypt.compare(curretPassword, user.getDataValue('password'));
+        const isCorrect = await bcrypt.compare(curretPassword, user!.getDataValue('password'));
         if(!isCorrect){
-            return res.status(401).json({
+            res.status(401).json({
                 success : false,
                 message : "Incorrect password"
             });
         }
 
-        user.password = newPassword;
-        await user.save();
-        createSendToken(user, 200, res);
+        user!.password = newPassword;
+        await user!.save();
+        createSendToken(user!, 200, res);
     }catch(err){
         next(err);
     }
@@ -133,7 +133,7 @@ export const updatePassword = async(req : Request, res : Response, next : NextFu
 export const updateMe = async(req : Request, res : Response, next : NextFunction)=>{
     try{
         if(req.body.password){
-            return res.status(400).json({
+            res.status(400).json({
                 success : false,
                 message : "This is not for password updates, Please use /updatePassword route"
             });

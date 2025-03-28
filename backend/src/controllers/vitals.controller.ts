@@ -12,7 +12,7 @@ export const getPatientVitals = async(req : Request, res : Response, next : Next
             });
 
         if(!patientVitals){
-            return res.status(404).json({
+            res.status(404).json({
                 success : false,
                 message : "Patient not found"
             });
@@ -36,12 +36,12 @@ export const addVitalSigns = async(req : Request, res : Response, next : NextFun
             data
         });
         if(!patientVitals){
-            return res.status(500).json({
+            res.status(500).json({
                 success : false,
                 message : "Failed to add patient vitals"
             });
         }
-        return res.status(201).json({
+        res.status(201).json({
             success : true,
             data : patientVitals
         });

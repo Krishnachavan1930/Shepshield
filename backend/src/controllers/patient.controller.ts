@@ -39,7 +39,7 @@ export const getPatient = async(req : Request, res : Response, next : NextFuncti
     try{
         const patient = await Patient.findByPk(req.params.id);
         if(!patient){
-            return res.status(404).json({
+            res.status(404).json({
                 success : false,
                 message : "Patient not found"
             });
@@ -77,7 +77,7 @@ export const updatePatient = async(req : Request, res : Response, next : NextFun
 
         const patient = await Patient.update(req.body, {where : {id : req.params.id}});
         if(!patient){
-            return res.status(404).json({
+            res.status(404).json({
                 success : false,
                 message : "Patient not found"
             });
@@ -96,14 +96,14 @@ export const deletePatient = async(req : Request, res : Response, next : NextFun
     try{
         const patient = await Patient.findByPk(req.params.id);
         if(!patient){
-            return res.status(404).json({
+            res.status(404).json({
                 success : false,
                 message : "Patient not found"
             });
         }
-        await patient.destroy();
+        await patient!.destroy();
 
-        return res.status(200).json({
+        res.status(200).json({
             success : true,
             message : "Patient deleted successfully"
         });

@@ -14,18 +14,18 @@ export const protect = async(req : Request, res : Response, next : NextFunction)
             token = req.headers.authorization.split(' ')[1];
         }
         if(!token){
-            return res.status(401).json({
+            res.status(401).json({
                 success : false,
                 message : "Invalid Authorization. Please login first or strict action will be taken"
             });
         }
 
-        const decoded_token = jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload;
+        const decoded_token = jwt.verify(token as string, process.env.JWT_SECRET as string) as jwt.JwtPayload;
 
 
         const currentUser = await User.findByPk(decoded_token.id);
         if(!currentUser){
-            return res.status(401).json({
+            res.status(401).json({
                 success : false,
                 message : "The user belonging to this token no longer exists"
             });
@@ -34,7 +34,7 @@ export const protect = async(req : Request, res : Response, next : NextFunction)
         req.user = currentUser;
         next();
     }catch(err){
-        return res.status(500).json({
+        res.status(500).json({
             success : false,
             message : "Something went wrong"
         });
@@ -44,7 +44,7 @@ export const protect = async(req : Request, res : Response, next : NextFunction)
 export const restrictIo = (...roles:any)=>{
     return (req : Request, res : Response, next : NextFunction)=>{
         if(!roles.includes(req.user.role)){
-            return res.status(403).json({
+            res.status(403).json({
                 success : false,
                 message : "You do not have permission to perform this action"
             })

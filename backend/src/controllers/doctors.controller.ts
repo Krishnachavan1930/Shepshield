@@ -48,7 +48,7 @@ export const updateDoctor = async(req : Request, res : Response, next : NextFunc
     try{
         const doctor = await Doctor.update(req.body, {where : {id : req.params.id}});
         if(!doctor){
-            return res.status(404).json({
+            res.status(404).json({
                 success : false,
                 message : "Doctor not found"
             });
@@ -63,16 +63,36 @@ export const deleteDoctor = async(req : Request, res : Response, next : NextFunc
     try{
         const doctor = await Doctor.findByPk(req.user.id);
         if(!doctor){
-            return res.status(404).json({
+            res.status(404).json({
                 success : false,
                 message : "Doctor not found"
             });
         }
-        await doctor.destroy();
-        doctor.save();
-        return res.status(200).json({
+        await doctor!.destroy();
+        doctor?.save();
+        res.status(200).json({
             success : true,
             message : "Doctor deleted successfully"
+        });
+    }catch(err){
+        next(err);
+    }
+}
+
+
+export const getDoctor = async(req : Request, res : Response, next :  NextFunction)=>{
+    try{
+        const doctor = await Doctor.findByPk(req.params.id);
+        if(!doctor){
+            res.status(404).json({
+                success : false,
+                message : "Doctor not found"
+            });
+        }
+
+        res.status(200).json({
+            success : true,
+            data : doctor
         });
     }catch(err){
         next(err);

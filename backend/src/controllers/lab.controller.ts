@@ -5,7 +5,7 @@ export const getPatientLab = async(req : Request, res : Response, next : NextFun
     try{
         const pid = req.params.id;
         if(!pid){
-            return res.status(400).json({
+            res.status(400).json({
                 success : false,
                 message : "Please enter patient id"
             });
@@ -15,12 +15,12 @@ export const getPatientLab = async(req : Request, res : Response, next : NextFun
             order: [[String("recordedAt"), "ASC"]],
             });
         if(!patientLab){
-            return res.status(404).json({
+            res.status(404).json({
                 success : false,
                 message : "Patient Lab details not found"
             });
         }
-        return res.status(200).json({
+        res.status(200).json({
             success : true,
             count : total,
             data : patientLab

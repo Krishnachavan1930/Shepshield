@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import { Search, Plus, Filter, Eye, FileEdit, Trash2, Download, ArrowUpDown } from 'lucide-react';
+import { Search, Plus, Filter, FileEdit, Trash2, Download, ArrowUpDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AnimatedSection from '@/components/AnimatedSection';
 
@@ -28,17 +27,61 @@ const PatientsList = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [riskFilter, setRiskFilter] = useState('all');
   const [departmentFilter, setDepartmentFilter] = useState('all');
-  
+  const [expandedRows, setExpandedRows] = useState<string[]>([]); // State to track expanded rows
+
+  // Move patients data into state
+  const [patients, setPatients] = useState<Patient[]>([
+    { id: 'P-1234', name: 'Emily Johnson', age: 65, gender: 'F', riskLevel: 'High', department: 'Emergency', lastUpdated: '10 mins ago', status: 'Active' },
+    { id: 'P-2345', name: 'Robert Smith', age: 58, gender: 'M', riskLevel: 'Medium', department: 'ICU', lastUpdated: '25 mins ago', status: 'Critical' },
+    { id: 'P-3456', name: 'Maria Garcia', age: 42, gender: 'F', riskLevel: 'Low', department: 'General Medicine', lastUpdated: '1 hour ago', status: 'Active' },
+    { id: 'P-4567', name: 'James Wilson', age: 72, gender: 'M', riskLevel: 'High', department: 'Cardiology', lastUpdated: '2 hours ago', status: 'Active' },
+    { id: 'P-5678', name: 'Linda Chen', age: 49, gender: 'F', riskLevel: 'Medium', department: 'Emergency', lastUpdated: '3 hours ago', status: 'Active' },
+    { id: 'P-6789', name: 'Michael Brown', age: 62, gender: 'M', riskLevel: 'Low', department: 'Neurology', lastUpdated: '4 hours ago', status: 'Discharged' },
+    { id: 'P-7890', name: 'Sarah Davis', age: 35, gender: 'F', riskLevel: 'Low', department: 'General Medicine', lastUpdated: '5 hours ago', status: 'Discharged' },
+    { id: 'P-8901', name: 'Thomas Martinez', age: 68, gender: 'M', riskLevel: 'High', department: 'ICU', lastUpdated: '6 hours ago', status: 'Critical' },
+    { id: 'P-9012', name: 'Jessica Lewis', age: 51, gender: 'F', riskLevel: 'Medium', department: 'Cardiology', lastUpdated: '7 hours ago', status: 'Active' },
+    { id: 'P-0123', name: 'David Lee', age: 44, gender: 'M', riskLevel: 'Low', department: 'General Medicine', lastUpdated: '8 hours ago', status: 'Discharged' },
+    { id: 'P-1345', name: 'Amanda White', age: 77, gender: 'F', riskLevel: 'High', department: 'Emergency', lastUpdated: '9 hours ago', status: 'Active' },
+    { id: 'P-2456', name: 'John Clark', age: 55, gender: 'M', riskLevel: 'Medium', department: 'Neurology', lastUpdated: '10 hours ago', status: 'Active' },
+  ]);
+
   // Filter patients based on search term and filters
   const filteredPatients = patients.filter(patient => {
     const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           patient.id.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || patient.status === statusFilter;
-    const matchesRisk = riskFilter === 'all' || patient.riskLevel === riskFilter;
-    const matchesDepartment = departmentFilter === 'all' || patient.department === departmentFilter;
+    
+    // Case-insensitive comparison for status
+    const matchesStatus = statusFilter === 'all' || 
+                          patient.status.toLowerCase() === statusFilter.toLowerCase();
+    
+    // Case-insensitive comparison for risk level
+    const matchesRisk = riskFilter === 'all' || 
+                        patient.riskLevel.toLowerCase() === riskFilter.toLowerCase();
+    
+    // Case-insensitive comparison for department
+    const matchesDepartment = departmentFilter === 'all' || 
+                              patient.department.toLowerCase() === departmentFilter.toLowerCase();
     
     return matchesSearch && matchesStatus && matchesRisk && matchesDepartment;
   });
+
+  // Function to toggle the expanded state of a row
+  const toggleRow = (patientId: string) => {
+    setExpandedRows(prev =>
+      prev.includes(patientId)
+        ? prev.filter(id => id !== patientId) // Close the row
+        : [...prev, patientId] // Open the row
+    );
+  };
+
+  // Function to handle patient deletion
+  const handleDelete = (patientId: string) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this patient? This action cannot be undone.');
+    if (confirmDelete) {
+      setPatients(prevPatients => prevPatients.filter(patient => patient.id !== patientId));
+      setExpandedRows(prev => prev.filter(id => id !== patientId));
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -92,47 +135,48 @@ const PatientsList = () => {
               <div className="flex flex-wrap gap-3 mb-6">
                 <div className="flex items-center space-x-2">
                   <p className="text-sm font-medium">Status:</p>
-                  <Select defaultValue="all" onValueChange={setStatusFilter}>
+                  <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value)}>
                     <SelectTrigger className="h-8 w-[130px]">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="Active">Active</SelectItem>
-                      <SelectItem value="Discharged">Discharged</SelectItem>
-                      <SelectItem value="Critical">Critical</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="discharged">Discharged</SelectItem>
+                      <SelectItem value="critical">Critical</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
                 <div className="flex items-center space-x-2">
                   <p className="text-sm font-medium">Risk Level:</p>
-                  <Select defaultValue="all" onValueChange={setRiskFilter}>
+                  <Select value={riskFilter} onValueChange={(value) => setRiskFilter(value)}>
                     <SelectTrigger className="h-8 w-[130px]">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="High">High</SelectItem>
-                      <SelectItem value="Medium">Medium</SelectItem>
-                      <SelectItem value="Low">Low</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
                 <div className="flex items-center space-x-2">
                   <p className="text-sm font-medium">Department:</p>
-                  <Select defaultValue="all" onValueChange={setDepartmentFilter}>
+                  <Select value={departmentFilter} onValueChange={(value) => setDepartmentFilter(value)}>
                     <SelectTrigger className="h-8 w-[180px]">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="Emergency">Emergency</SelectItem>
-                      <SelectItem value="ICU">ICU</SelectItem>
-                      <SelectItem value="General Medicine">General Medicine</SelectItem>
-                      <SelectItem value="Pediatrics">Pediatrics</SelectItem>
-                      <SelectItem value="Cardiology">Cardiology</SelectItem>
+                      <SelectItem value="emergency">Emergency</SelectItem>
+                      <SelectItem value="icu">ICU</SelectItem>
+                      <SelectItem value="general medicine">General Medicine</SelectItem>
+                      <SelectItem value="pediatrics">Pediatrics</SelectItem>
+                      <SelectItem value="cardiology">Cardiology</SelectItem>
+                      <SelectItem value="neurology">Neurology</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -155,36 +199,63 @@ const PatientsList = () => {
                   <TableBody>
                     {filteredPatients.length > 0 ? (
                       filteredPatients.map(patient => (
-                        <TableRow key={patient.id}>
-                          <TableCell className="font-medium">{patient.id}</TableCell>
-                          <TableCell>{patient.name}</TableCell>
-                          <TableCell>{patient.age}/{patient.gender}</TableCell>
-                          <TableCell>{patient.department}</TableCell>
-                          <TableCell>
-                            <Badge variant={getRiskVariant(patient.riskLevel)}>
-                              {patient.riskLevel}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={getStatusVariant(patient.status)}>
-                              {patient.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-sm">{patient.lastUpdated}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button variant="ghost" size="icon">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon">
-                                <FileEdit className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon">
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
+                        <React.Fragment key={patient.id}>
+                          <TableRow>
+                            <TableCell className="font-medium">{patient.id}</TableCell>
+                            <TableCell>{patient.name}</TableCell>
+                            <TableCell>{patient.age}/{patient.gender}</TableCell>
+                            <TableCell>{patient.department}</TableCell>
+                            <TableCell>
+                              <Badge variant={getRiskVariant(patient.riskLevel)}>
+                                {patient.riskLevel}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={getStatusVariant(patient.status)}>
+                                {patient.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-sm">{patient.lastUpdated}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => toggleRow(patient.id)} // Edit icon toggles the row
+                                  title="View Details"
+                                >
+                                  <FileEdit className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => handleDelete(patient.id)} // Delete patient on click
+                                  title="Delete Patient"
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                          {expandedRows.includes(patient.id) && (
+                            <TableRow>
+                              <TableCell colSpan={8} className="bg-gray-50">
+                                <div className="p-4">
+                                  <h4 className="text-sm font-medium">Additional Details</h4>
+                                  <p className="text-sm text-muted-foreground">
+                                    <strong>ID:</strong> {patient.id} <br />
+                                    <strong>Name:</strong> {patient.name} <br />
+                                    <strong>Age/Gender:</strong> {patient.age}/{patient.gender} <br />
+                                    <strong>Department:</strong> {patient.department} <br />
+                                    <strong>Risk Level:</strong> {patient.riskLevel} <br />
+                                    <strong>Status:</strong> {patient.status} <br />
+                                    <strong>Last Updated:</strong> {patient.lastUpdated}
+                                  </p>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </React.Fragment>
                       ))
                     ) : (
                       <TableRow>
@@ -212,33 +283,60 @@ const PatientsList = () => {
                   </TableHeader>
                   <TableBody>
                     {patients
-                      .filter(patient => patient.riskLevel === 'High')
+                      .filter(patient => patient.riskLevel.toLowerCase() === 'high')
                       .map(patient => (
-                        <TableRow key={patient.id}>
-                          <TableCell className="font-medium">{patient.id}</TableCell>
-                          <TableCell>{patient.name}</TableCell>
-                          <TableCell>{patient.age}/{patient.gender}</TableCell>
-                          <TableCell>{patient.department}</TableCell>
-                          <TableCell>
-                            <Badge variant={getStatusVariant(patient.status)}>
-                              {patient.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-sm">{patient.lastUpdated}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button variant="ghost" size="icon">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon">
-                                <FileEdit className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon">
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
+                        <React.Fragment key={patient.id}>
+                          <TableRow>
+                            <TableCell className="font-medium">{patient.id}</TableCell>
+                            <TableCell>{patient.name}</TableCell>
+                            <TableCell>{patient.age}/{patient.gender}</TableCell>
+                            <TableCell>{patient.department}</TableCell>
+                            <TableCell>
+                              <Badge variant={getStatusVariant(patient.status)}>
+                                {patient.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-sm">{patient.lastUpdated}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => toggleRow(patient.id)} // Edit icon toggles the row
+                                  title="View Details"
+                                >
+                                  <FileEdit className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => handleDelete(patient.id)} // Delete patient on click
+                                  title="Delete Patient"
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                          {expandedRows.includes(patient.id) && (
+                            <TableRow>
+                              <TableCell colSpan={7} className="bg-gray-50">
+                                <div className="p-4">
+                                  <h4 className="text-sm font-medium">Additional Details</h4>
+                                  <p className="text-sm text-muted-foreground">
+                                    <strong>ID:</strong> {patient.id} <br />
+                                    <strong>Name:</strong> {patient.name} <br />
+                                    <strong>Age/Gender:</strong> {patient.age}/{patient.gender} <br />
+                                    <strong>Department:</strong> {patient.department} <br />
+                                    <strong>Risk Level:</strong> {patient.riskLevel} <br />
+                                    <strong>Status:</strong> {patient.status} <br />
+                                    <strong>Last Updated:</strong> {patient.lastUpdated}
+                                  </p>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </React.Fragment>
                       ))}
                   </TableBody>
                 </Table>
@@ -259,33 +357,60 @@ const PatientsList = () => {
                   </TableHeader>
                   <TableBody>
                     {patients
-                      .filter(patient => patient.status === 'Active')
+                      .filter(patient => patient.status.toLowerCase() === 'active')
                       .map(patient => (
-                        <TableRow key={patient.id}>
-                          <TableCell className="font-medium">{patient.id}</TableCell>
-                          <TableCell>{patient.name}</TableCell>
-                          <TableCell>{patient.age}/{patient.gender}</TableCell>
-                          <TableCell>{patient.department}</TableCell>
-                          <TableCell>
-                            <Badge variant={getRiskVariant(patient.riskLevel)}>
-                              {patient.riskLevel}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-sm">{patient.lastUpdated}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button variant="ghost" size="icon">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon">
-                                <FileEdit className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon">
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
+                        <React.Fragment key={patient.id}>
+                          <TableRow>
+                            <TableCell className="font-medium">{patient.id}</TableCell>
+                            <TableCell>{patient.name}</TableCell>
+                            <TableCell>{patient.age}/{patient.gender}</TableCell>
+                            <TableCell>{patient.department}</TableCell>
+                            <TableCell>
+                              <Badge variant={getRiskVariant(patient.riskLevel)}>
+                                {patient.riskLevel}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-sm">{patient.lastUpdated}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => toggleRow(patient.id)} // Edit icon toggles the row
+                                  title="View Details"
+                                >
+                                  <FileEdit className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => handleDelete(patient.id)} // Delete patient on click
+                                  title="Delete Patient"
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                          {expandedRows.includes(patient.id) && (
+                            <TableRow>
+                              <TableCell colSpan={7} className="bg-gray-50">
+                                <div className="p-4">
+                                  <h4 className="text-sm font-medium">Additional Details</h4>
+                                  <p className="text-sm text-muted-foreground">
+                                    <strong>ID:</strong> {patient.id} <br />
+                                    <strong>Name:</strong> {patient.name} <br />
+                                    <strong>Age/Gender:</strong> {patient.age}/{patient.gender} <br />
+                                    <strong>Department:</strong> {patient.department} <br />
+                                    <strong>Risk Level:</strong> {patient.riskLevel} <br />
+                                    <strong>Status:</strong> {patient.status} <br />
+                                    <strong>Last Updated:</strong> {patient.lastUpdated}
+                                  </p>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </React.Fragment>
                       ))}
                   </TableBody>
                 </Table>
@@ -306,33 +431,60 @@ const PatientsList = () => {
                   </TableHeader>
                   <TableBody>
                     {patients
-                      .filter(patient => patient.status === 'Discharged')
+                      .filter(patient => patient.status.toLowerCase() === 'discharged')
                       .map(patient => (
-                        <TableRow key={patient.id}>
-                          <TableCell className="font-medium">{patient.id}</TableCell>
-                          <TableCell>{patient.name}</TableCell>
-                          <TableCell>{patient.age}/{patient.gender}</TableCell>
-                          <TableCell>{patient.department}</TableCell>
-                          <TableCell>
-                            <Badge variant={getRiskVariant(patient.riskLevel)}>
-                              {patient.riskLevel}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-sm">{patient.lastUpdated}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button variant="ghost" size="icon">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon">
-                                <FileEdit className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon">
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
+                        <React.Fragment key={patient.id}>
+                          <TableRow>
+                            <TableCell className="font-medium">{patient.id}</TableCell>
+                            <TableCell>{patient.name}</TableCell>
+                            <TableCell>{patient.age}/{patient.gender}</TableCell>
+                            <TableCell>{patient.department}</TableCell>
+                            <TableCell>
+                              <Badge variant={getRiskVariant(patient.riskLevel)}>
+                                {patient.riskLevel}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-sm">{patient.lastUpdated}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => toggleRow(patient.id)} // Edit icon toggles the row
+                                  title="View Details"
+                                >
+                                  <FileEdit className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => handleDelete(patient.id)} // Delete patient on click
+                                  title="Delete Patient"
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                          {expandedRows.includes(patient.id) && (
+                            <TableRow>
+                              <TableCell colSpan={7} className="bg-gray-50">
+                                <div className="p-4">
+                                  <h4 className="text-sm font-medium">Additional Details</h4>
+                                  <p className="text-sm text-muted-foreground">
+                                    <strong>ID:</strong> {patient.id} <br />
+                                    <strong>Name:</strong> {patient.name} <br />
+                                    <strong>Age/Gender:</strong> {patient.age}/{patient.gender} <br />
+                                    <strong>Department:</strong> {patient.department} <br />
+                                    <strong>Risk Level:</strong> {patient.riskLevel} <br />
+                                    <strong>Status:</strong> {patient.status} <br />
+                                    <strong>Last Updated:</strong> {patient.lastUpdated}
+                                  </p>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </React.Fragment>
                       ))}
                   </TableBody>
                 </Table>
@@ -371,37 +523,21 @@ const PatientsList = () => {
 
 // Helper functions
 const getRiskVariant = (risk: string): "default" | "destructive" | "outline" | "secondary" => {
-  switch (risk) {
-    case 'High': return 'destructive';
-    case 'Medium': return 'default';
-    case 'Low': return 'secondary';
+  switch (risk.toLowerCase()) {
+    case 'high': return 'destructive';
+    case 'medium': return 'default';
+    case 'low': return 'secondary';
     default: return 'outline';
   }
 };
 
 const getStatusVariant = (status: string): "default" | "destructive" | "outline" | "secondary" => {
-  switch (status) {
-    case 'Active': return 'default';
-    case 'Discharged': return 'secondary';
-    case 'Critical': return 'destructive';
+  switch (status.toLowerCase()) {
+    case 'active': return 'default';
+    case 'discharged': return 'secondary';
+    case 'critical': return 'destructive';
     default: return 'outline';
   }
 };
-
-// Sample data
-const patients: Patient[] = [
-  { id: 'P-1234', name: 'Emily Johnson', age: 65, gender: 'F', riskLevel: 'High', department: 'Emergency', lastUpdated: '10 mins ago', status: 'Active' },
-  { id: 'P-2345', name: 'Robert Smith', age: 58, gender: 'M', riskLevel: 'Medium', department: 'ICU', lastUpdated: '25 mins ago', status: 'Critical' },
-  { id: 'P-3456', name: 'Maria Garcia', age: 42, gender: 'F', riskLevel: 'Low', department: 'General Medicine', lastUpdated: '1 hour ago', status: 'Active' },
-  { id: 'P-4567', name: 'James Wilson', age: 72, gender: 'M', riskLevel: 'High', department: 'Cardiology', lastUpdated: '2 hours ago', status: 'Active' },
-  { id: 'P-5678', name: 'Linda Chen', age: 49, gender: 'F', riskLevel: 'Medium', department: 'Emergency', lastUpdated: '3 hours ago', status: 'Active' },
-  { id: 'P-6789', name: 'Michael Brown', age: 62, gender: 'M', riskLevel: 'Low', department: 'Neurology', lastUpdated: '4 hours ago', status: 'Discharged' },
-  { id: 'P-7890', name: 'Sarah Davis', age: 35, gender: 'F', riskLevel: 'Low', department: 'General Medicine', lastUpdated: '5 hours ago', status: 'Discharged' },
-  { id: 'P-8901', name: 'Thomas Martinez', age: 68, gender: 'M', riskLevel: 'High', department: 'ICU', lastUpdated: '6 hours ago', status: 'Critical' },
-  { id: 'P-9012', name: 'Jessica Lewis', age: 51, gender: 'F', riskLevel: 'Medium', department: 'Cardiology', lastUpdated: '7 hours ago', status: 'Active' },
-  { id: 'P-0123', name: 'David Lee', age: 44, gender: 'M', riskLevel: 'Low', department: 'General Medicine', lastUpdated: '8 hours ago', status: 'Discharged' },
-  { id: 'P-1345', name: 'Amanda White', age: 77, gender: 'F', riskLevel: 'High', department: 'Emergency', lastUpdated: '9 hours ago', status: 'Active' },
-  { id: 'P-2456', name: 'John Clark', age: 55, gender: 'M', riskLevel: 'Medium', department: 'Neurology', lastUpdated: '10 hours ago', status: 'Active' },
-];
 
 export default PatientsList;

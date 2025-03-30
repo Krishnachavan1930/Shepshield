@@ -1,43 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
-  Activity, 
-  BarChart3, 
-  Bell, 
-  ChevronDown, 
-  Home, 
-  LogOut, 
-  Menu, 
-  MessageSquare, 
-  Settings, 
-  Users, 
-  X,
-  FileUp,
-  Search,
-  HelpCircle
+  Activity, BarChart3, Bell, ChevronDown, Home, 
+  Menu, MessageSquare, Settings, Users, X,
+  FileUp, Search, HelpCircle 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-// ProfileWithModal Component
 const ProfileWithModal = ({ doctorProfile, isModalOpen, setIsModalOpen }) => {
   const handleOpenModal = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    console.log('Opening modal');
     setIsModalOpen(true);
   };
 
   const handleCloseModal = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('Closing modal');
     setIsModalOpen(false);
   };
 
@@ -53,14 +38,8 @@ const ProfileWithModal = ({ doctorProfile, isModalOpen, setIsModalOpen }) => {
       </Button>
 
       {isModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-          onClick={handleCloseModal}
-        >
-          <div
-            className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={handleCloseModal}>
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Doctor Profile</h2>
               <Button variant="outline" className="bg-cyan-500 text-white hover:bg-cyan-600" onClick={handleCloseModal}>
@@ -69,32 +48,18 @@ const ProfileWithModal = ({ doctorProfile, isModalOpen, setIsModalOpen }) => {
             </div>
             <div className="space-y-4">
               <div className="flex items-center space-x-4">
-                <img
-                  src={doctorProfile.avatar}
-                  alt={doctorProfile.name}
-                  className="w-20 h-20 rounded-full"
-                />
+                <img src={doctorProfile.avatar} alt={doctorProfile.name} className="w-20 h-20 rounded-full" />
                 <div>
                   <h3 className="text-lg font-bold">{doctorProfile.name}</h3>
                   <p className="text-sm text-muted-foreground">{doctorProfile.role}</p>
                 </div>
               </div>
               <div className="space-y-2">
-                <p>
-                  <strong>Email:</strong> {doctorProfile.email}
-                </p>
-                <p>
-                  <strong>Department:</strong> {doctorProfile.department}
-                </p>
-                <p>
-                  <strong>Phone:</strong> {doctorProfile.phone}
-                </p>
-                <p>
-                  <strong>Experience:</strong> {doctorProfile.experience}
-                </p>
-                <p>
-                  <strong>Bio:</strong> {doctorProfile.bio}
-                </p>
+                <p><strong>Email:</strong> {doctorProfile.email}</p>
+                <p><strong>Department:</strong> {doctorProfile.department}</p>
+                <p><strong>Phone:</strong> {doctorProfile.phone}</p>
+                <p><strong>Experience:</strong> {doctorProfile.experience}</p>
+                <p><strong>Bio:</strong> {doctorProfile.bio}</p>
               </div>
             </div>
           </div>
@@ -107,10 +72,10 @@ const ProfileWithModal = ({ doctorProfile, isModalOpen, setIsModalOpen }) => {
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const sheetRef = useRef<HTMLDivElement>(null);
 
   const user = JSON.parse(localStorage.getItem('user') || '{"name": "Dr. John Doe", "department": "Infectious Disease"}');
 
@@ -131,18 +96,48 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     navigate('/login');
   };
 
-  // Close mobile menu when route changes
   useEffect(() => {
     setOpen(false);
     setSearchActive(false);
   }, [location.pathname]);
 
+  // Handle menu animation
+  useEffect(() => {
+    if (!sheetRef.current) return;
+    
+    if (open) {
+      sheetRef.current.style.display = 'block';
+      setTimeout(() => {
+        if (sheetRef.current) {
+          sheetRef.current.style.transform = 'translateX(0)';
+        }
+      }, 10);
+    } else {
+      if (sheetRef.current) {
+        sheetRef.current.style.transform = 'translateX(-100%)';
+        setTimeout(() => {
+          if (sheetRef.current) {
+            sheetRef.current.style.display = 'none';
+          }
+        }, 300);
+      }
+    }
+  }, [open]);
+
+  const navItems = [
+    { label: 'Dashboard', icon: <Home className="h-5 w-5" />, path: '/dashboard' },
+    { label: 'Patient Records', icon: <Users className="h-5 w-5" />, path: '/dashboard/patients' },
+    { label: 'Upload Reports', icon: <FileUp className="h-5 w-5" />, path: '/dashboard/upload' },
+    { label: 'Analytics', icon: <BarChart3 className="h-5 w-5" />, path: '/dashboard/analytics' },
+    { label: 'Sepsis Monitoring', icon: <Activity className="h-5 w-5" />, path: '/dashboard/monitoring' },
+    { label: 'Settings', icon: <Settings className="h-5 w-5" />, path: '/dashboard/settings' },
+    { label: 'Help & Support', icon: <HelpCircle className="h-5 w-5" />, path: '/dashboard/help' }
+  ];
+
   return (
     <div className="min-h-screen bg-muted/20 flex flex-col">
-      {/* Top Navigation */}
       <header className="sticky top-0 z-30 bg-white border-b shadow-sm">
         <div className="container-wide h-16 flex items-center justify-between">
-          {/* Logo and mobile menu */}
           <div className="flex items-center">
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
@@ -150,8 +145,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="p-0">
-                <div className="p-6 border-b">
+              <div
+                ref={sheetRef}
+                className="fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-lg p-0"
+                style={{
+                  display: 'none',
+                  transform: 'translateX(-100%)',
+                  transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+              >
+                <div className="p-6 border-b h-full overflow-y-auto">
                   <div className="flex items-center justify-between mb-4">
                     <Link to="/" className="text-xl font-bold text-primary">SepsisCare</Link>
                     <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
@@ -170,15 +173,31 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     </div>
                   </div>
 
-                  <MobileNav setOpen={setOpen} />
+                  <nav className="space-y-1">
+                    {navItems.map((item) => (
+                      <Link 
+                        key={item.path}
+                        to={item.path}
+                        className={cn(
+                          'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium w-full',
+                          location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path))
+                            ? 'bg-primary/10 text-primary'
+                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                        )}
+                        onClick={() => setOpen(false)}
+                      >
+                        {item.icon}
+                        {item.label}
+                      </Link>
+                    ))}
+                  </nav>
                 </div>
-              </SheetContent>
+              </div>
             </Sheet>
 
             <Link to="/" className="text-xl font-bold text-primary hidden lg:flex">SepsisCare</Link>
           </div>
 
-          {/* Search */}
           <div className={`${searchActive ? 'flex' : 'hidden'} lg:flex items-center max-w-sm w-full relative`}>
             <Search className="absolute left-3 text-muted-foreground h-4 w-4" />
             <input 
@@ -198,7 +217,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             )}
           </div>
 
-          {/* User navigation */}
           <div className="flex items-center gap-2">
             <Button 
               variant="ghost" 
@@ -227,14 +245,28 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       </header>
 
       <div className="flex-1 flex">
-        {/* Sidebar (desktop only) */}
         <aside className="hidden lg:block w-64 bg-white border-r h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto">
           <div className="p-6">
-            <DesktopNav />
+            <nav className="space-y-1">
+              {navItems.map((item) => (
+                <Link 
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium w-full',
+                    location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path))
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  {item.icon}
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
           </div>
         </aside>
 
-        {/* Main content */}
         <main className="flex-1 p-4 md:p-6 overflow-x-hidden">
           <div className="container-wide mx-auto">
             {children}
@@ -242,81 +274,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </main>
       </div>
     </div>
-  );
-};
-
-interface NavProps {
-  setOpen?: (open: boolean) => void;
-}
-
-const MobileNav: React.FC<NavProps> = ({ setOpen }) => {
-  const location = useLocation();
-  const currentPath = useLocation().pathname;
-
-  const navItems = [
-    { label: 'Dashboard', icon: <Home className="h-5 w-5" />, path: '/dashboard' },
-    { label: 'Patient Records', icon: <Users className="h-5 w-5" />, path: '/dashboard/patients' },
-    { label: 'Upload Reports', icon: <FileUp className="h-5 w-5" />, path: '/dashboard/upload' },
-    { label: 'Analytics', icon: <BarChart3 className="h-5 w-5" />, path: '/dashboard/analytics' },
-    { label: 'Sepsis Monitoring', icon: <Activity className="h-5 w-5" />, path: '/dashboard/monitoring' },
-    { label: 'Settings', icon: <Settings className="h-5 w-5" />, path: '/dashboard/settings' },
-    { label: 'Help & Support', icon: <HelpCircle className="h-5 w-5" />, path: '/dashboard/help' }
-  ];
-
-  return (
-    <nav className="space-y-1">
-      {navItems.map((item) => (
-        <Link 
-          key={item.path}
-          to={item.path}
-          className={cn(
-            'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium w-full',
-            currentPath === item.path || (item.path !== '/dashboard' && currentPath.startsWith(item.path))
-              ? 'bg-primary/10 text-primary'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          )}
-          onClick={() => setOpen && setOpen(false)}
-        >
-          {item.icon}
-          {item.label}
-        </Link>
-      ))}
-    </nav>
-  );
-};
-
-const DesktopNav: React.FC<NavProps> = () => {
-  const location = useLocation();
-  const currentPath = location.pathname;
-
-  const navItems = [
-    { label: 'Dashboard', icon: <Home className="h-5 w-5" />, path: '/dashboard' },
-    { label: 'Patient Records', icon: <Users className="h-5 w-5" />, path: '/dashboard/patients' },
-    { label: 'Upload Reports', icon: <FileUp className="h-5 w-5" />, path: '/dashboard/upload' },
-    { label: 'Analytics', icon: <BarChart3 className="h-5 w-5" />, path: '/dashboard/analytics' },
-    { label: 'Sepsis Monitoring', icon: <Activity className="h-5 w-5" />, path: '/dashboard/monitoring' },
-    { label: 'Settings', icon: <Settings className="h-5 w-5" />, path: '/dashboard/settings' },
-    { label: 'Help & Support', icon: <HelpCircle className="h-5 w-5" />, path: '/dashboard/help' }
-  ];
-
-  return (
-    <nav className="space-y-1">
-      {navItems.map((item) => (
-        <Link 
-          key={item.path}
-          to={item.path}
-          className={cn(
-            'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium w-full',
-            currentPath === item.path || (item.path !== '/dashboard' && currentPath.startsWith(item.path))
-              ? 'bg-primary/10 text-primary'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          )}
-        >
-          {item.icon}
-          {item.label}
-        </Link>
-      ))}
-    </nav>
   );
 };
 

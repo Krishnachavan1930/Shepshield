@@ -38,46 +38,63 @@ export const getAllPatients = async(req : Request, res : Response, next : NextFu
 }
 
 
-export const getPatient = async(req : Request, res : Response, next : NextFunction)=>{
-    try {
-        console.log(req.params);
+// export const getPatient = async(req : Request, res : Response, next : NextFunction)=>{
+//     try {
+//         console.log(req.params);
         
+//         // Fetch patient
+//         let patient = await Patient.findByPk(req.params.id, {
+//             include: [
+//                 { model: VitalSigns, limit: 1, order: [['createdAt', 'DESC']] },
+//                 { model: LabResult, limit: 1, order: [['createdAt', 'DESC']] },
+//             ],
+//         });
+//         if (!patient) {
+//             res.status(404).json({
+//                 success: false,
+//                 message: "Patient not found",
+//             });
+//         }
+//         console.log(patient);
+//         // Return response
+//         res.status(200).json({
+//             success: true,
+//             data: patient,
+//         });
+//     } catch (err) {
+//         next(err);
+//     }
+// }
+
+export const getPatient = async (req: Request, res: Response, next: NextFunction) => {
+    try {
         // Fetch patient
-        let patient = await Patient.findByPk(req.params.id);
+        const patient = await Patient.findByPk(req.params.id);
         if (!patient) {
             res.status(404).json({
                 success: false,
                 message: "Patient not found",
             });
+            return;
         }
-        
-        console.log(1);
-    
-        // Convert patient instance to plain object
-        let patientData = patient!.toJSON();
-    
-        // Fetch vital signs
+
+        // Convert to plain object
+        let patientData = patient.toJSON();
+
+        // Fetch latest vital signs (single object)
         const vitalSigns = await VitalSigns.findOne({
-            where: { patientId: req.params.id },
-            order: [['createdAt', 'DESC']], // Fetch latest entry
-        });
-    
-        console.log(2);
-    
-        // Attach vitalSigns to patient data
-        patientData.vitalSigns = vitalSigns ? vitalSigns.toJSON() : null;
-    
-        // Fetch lab results
-        const lab = await LabResult.findOne({
             where: { patientId: req.params.id },
             order: [['createdAt', 'DESC']],
         });
-    
-        console.log(3);
-    
-        // Attach lab results to patient data
-        patientData.labResults = lab ? lab.toJSON() : null;
-    
+        patientData.VitalSigns = vitalSigns ? vitalSigns.toJSON() : null;
+
+        // Fetch latest lab results (single object)
+        const labResults = await LabResult.findOne({
+            where: { patientId: req.params.id },
+            order: [['createdAt', 'DESC']],
+        });
+        patientData.LabResults = labResults ? labResults.toJSON() : null;
+
         // Return response
         res.status(200).json({
             success: true,
@@ -86,26 +103,9 @@ export const getPatient = async(req : Request, res : Response, next : NextFuncti
     } catch (err) {
         next(err);
     }
-}
+};
 
-// export const createPatient = async(req : Request, res : Response, next : NextFunction)=>{
-//     try{
-//         if(!req.body.riskScore && req.body.vitalSigns){
-//             req.body.riskScore = calculateRiskScore(req.body.vitalSigns);
-//         }
-//         console.log(req.cookies.token);   
-//         console.log("Creating patient")
-//         req.body.assigneddoctor = req.cookies.token;
-//         const patient = await Patient.create(req.body);
-//         console.log("Patient created");
-//         res.status(201).json({
-//             success : true,
-//             data : patient
-//         });
-//     }catch(err){
-//         next(err);
-//     }
-// }
+
 
 export const createPatient = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {

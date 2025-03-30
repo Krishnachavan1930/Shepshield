@@ -1,284 +1,386 @@
-
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { AreaChart, BarChart, LineChart, PieChart } from 'recharts';
-import { Area, Bar, CartesianGrid, Cell, Legend, Line, Pie, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { ArrowUpRight, Download, Filter } from 'lucide-react';
-import { analyticsService } from '@/services/api';
-import AnimatedSection from '@/components/AnimatedSection';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import AnimatedSection from '@/components/AnimatedSection';
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
+import { DateRange } from 'react-day-picker';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format, subDays } from 'date-fns';
+import { CalendarIcon, RefreshCw, AlertTriangle, Stethoscope, Activity, HeartPulse } from 'lucide-react';
 
-const Analytics = () => {
-  const [analyticsData, setAnalyticsData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState('6m');
+// Types
+type PatientMetrics = {
+  date: string;
+  patientsTreated: number;
+  positiveOutcomes: number;
+  sepsisAlerts: number;
+  avgTreatmentTime: number;
+  readmissions: number;
+};
 
+type TimeRange = '24h' | '7d' | '30d' | 'custom';
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+
+// Mock data generator for healthcare metrics
+const generatePatientData = (days: number): PatientMetrics[] => {
+  return Array.from({ length: days }, (_, i) => {
+    const date = subDays(new Date(), days - i - 1);
+    const basePatients = Math.floor(Math.random() * 40) + 60;
+    return {
+      date: format(date, 'MMM dd'),
+      patientsTreated: basePatients,
+      positiveOutcomes: Math.floor(basePatients * 0.85) - Math.floor(Math.random() * 10),
+      sepsisAlerts: Math.floor(Math.random() * 8) + 2,
+      avgTreatmentTime: Math.floor(Math.random() * 120) + 60, // minutes
+      readmissions: Math.floor(Math.random() * 5) + 1,
+    };
+  });
+};
+
+export default function Analytics() {
+  const [timeRange, setTimeRange] = useState<TimeRange>('7d');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subDays(new Date(), 7),
+    to: new Date(),
+  });
+  const [data, setData] = useState<PatientMetrics[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [chartType, setChartType] = useState<'line' | 'bar'>('line');
+
+  // Fetch data based on time range
   useEffect(() => {
-    const fetchAnalytics = async () => {
+    const fetchData = () => {
+      setIsLoading(true);
       try {
-        setLoading(true);
-        const response = await analyticsService.getAnalytics();
-        setAnalyticsData(response.data);
+        let days = 7;
+        if (timeRange === '24h') days = 1;
+        if (timeRange === '30d') days = 30;
+        if (timeRange === 'custom' && dateRange?.from && dateRange.to) {
+          days = Math.ceil(
+            (dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)
+          );
+        }
+
+        const mockData = generatePatientData(days);
+        setData(mockData);
+        toast.success(`Loaded ${days} days of patient data`);
       } catch (error) {
-        console.error('Error fetching analytics:', error);
-        toast.error('Failed to load analytics data');
+        toast.error('Failed to load patient metrics');
+        console.error(error);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
-    fetchAnalytics();
-  }, []);
+    fetchData();
+  }, [timeRange, dateRange]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">Loading analytics data...</div>
-      </div>
-    );
-  }
+  const refreshData = () => {
+    setData(generatePatientData(data.length));
+    toast.success('Patient data refreshed');
+  };
 
-  if (!analyticsData) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">No analytics data available</div>
-      </div>
-    );
-  }
+  // Calculate totals
+  const totals = data.reduce(
+    (acc, curr) => ({
+      patientsTreated: acc.patientsTreated + curr.patientsTreated,
+      positiveOutcomes: acc.positiveOutcomes + curr.positiveOutcomes,
+      sepsisAlerts: acc.sepsisAlerts + curr.sepsisAlerts,
+      avgTreatmentTime: acc.avgTreatmentTime + curr.avgTreatmentTime / data.length,
+      readmissions: acc.readmissions + curr.readmissions,
+    }),
+    { patientsTreated: 0, positiveOutcomes: 0, sepsisAlerts: 0, avgTreatmentTime: 0, readmissions: 0 }
+  );
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+  // Calculate success rate
+  const successRate = totals.patientsTreated > 0 
+    ? (totals.positiveOutcomes / totals.patientsTreated * 100).toFixed(1)
+    : 0;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Sepsis Analytics</h1>
-          <p className="text-muted-foreground">Track sepsis cases and outcomes over time</p>
+    <AnimatedSection>
+      <div className="p-4 md:p-6 space-y-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <h1 className="text-2xl font-bold">Patient Care Analytics</h1>
+          
+          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+            <div className="flex items-center gap-2">
+              <Button
+                variant={timeRange === '24h' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setTimeRange('24h')}
+              >
+                24h
+              </Button>
+              <Button
+                variant={timeRange === '7d' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setTimeRange('7d')}
+              >
+                7d
+              </Button>
+              <Button
+                variant={timeRange === '30d' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setTimeRange('30d')}
+              >
+                30d
+              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={timeRange === 'custom' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setTimeRange('custom')}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    Custom
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={setDateRange}
+                    disabled={(date) => date > new Date()}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refreshData}
+              disabled={isLoading}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2 w-full md:w-auto">
-          <Select defaultValue="6m" onValueChange={(value) => setTimeRange(value)}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select time range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1m">Last Month</SelectItem>
-              <SelectItem value="3m">Last 3 Months</SelectItem>
-              <SelectItem value="6m">Last 6 Months</SelectItem>
-              <SelectItem value="1y">Last Year</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Export
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <MetricCard
+            title="Patients Treated"
+            value={totals.patientsTreated.toLocaleString()}
+            change="+5.2%"
+            icon={<Stethoscope className="h-5 w-5" />}
+          />
+          <MetricCard
+            title="Success Rate"
+            value={`${successRate}%`}
+            change="+2.1%"
+            icon={<HeartPulse className="h-5 w-5" />}
+          />
+          <MetricCard
+            title="Sepsis Alerts"
+            value={totals.sepsisAlerts.toLocaleString()}
+            change="-1.3%"
+            icon={<AlertTriangle className="h-5 w-5" />}
+          />
+          <MetricCard
+            title="Avg. Treatment Time"
+            value={`${totals.avgTreatmentTime.toFixed(0)} mins`}
+            change="-4.5%"
+            icon={<Activity className="h-5 w-5" />}
+          />
+        </div>
+
+        {/* Chart Type Selector */}
+        <div className="flex justify-end gap-2">
+          <Button
+            variant={chartType === 'line' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setChartType('line')}
+          >
+            Line Chart
+          </Button>
+          <Button
+            variant={chartType === 'bar' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setChartType('bar')}
+          >
+            Bar Chart
           </Button>
         </div>
+
+        {/* Main Chart */}
+        <div className="bg-card rounded-lg border p-4 h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            {chartType === 'line' ? (
+              <LineChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="patientsTreated"
+                  stroke="#0088FE"
+                  strokeWidth={2}
+                  activeDot={{ r: 6 }}
+                  name="Patients Treated"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="positiveOutcomes"
+                  stroke="#00C49F"
+                  strokeWidth={2}
+                  name="Positive Outcomes"
+                />
+              </LineChart>
+            ) : (
+              <BarChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="patientsTreated" fill="#0088FE" name="Patients Treated" />
+                <Bar dataKey="positiveOutcomes" fill="#00C49F" name="Positive Outcomes" />
+              </BarChart>
+            )}
+          </ResponsiveContainer>
+        </div>
+
+        {/* Additional Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Sepsis Alerts Chart */}
+          <div className="bg-card rounded-lg border p-4 h-80">
+            <h3 className="text-lg font-semibold mb-4">Sepsis Alerts</h3>
+            <ResponsiveContainer width="100%" height="90%">
+              <LineChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Line
+                  type="monotone"
+                  dataKey="sepsisAlerts"
+                  stroke="#FF8042"
+                  strokeWidth={2}
+                  name="Sepsis Alerts"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Outcomes Pie Chart */}
+          <div className="bg-card rounded-lg border p-4 h-80">
+            <h3 className="text-lg font-semibold mb-4">Patient Outcomes</h3>
+            <ResponsiveContainer width="100%" height="90%">
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'Positive Outcomes', value: totals.positiveOutcomes },
+                    { name: 'Readmissions', value: totals.readmissions },
+                  ]}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
+                >
+                  <Cell fill="#00C49F" />
+                  <Cell fill="#FF8042" />
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Data Table */}
+        <div className="bg-card rounded-lg border p-4">
+          <h3 className="text-lg font-semibold mb-4">Detailed Patient Metrics</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-border">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 text-left">Date</th>
+                  <th className="px-4 py-2 text-left">Patients Treated</th>
+                  <th className="px-4 py-2 text-left">Positive Outcomes</th>
+                  <th className="px-4 py-2 text-left">Success Rate</th>
+                  <th className="px-4 py-2 text-left">Sepsis Alerts</th>
+                  <th className="px-4 py-2 text-left">Avg. Treatment Time</th>
+                  <th className="px-4 py-2 text-left">Readmissions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {data.map((row) => (
+                  <tr key={row.date}>
+                    <td className="px-4 py-2">{row.date}</td>
+                    <td className="px-4 py-2">{row.patientsTreated.toLocaleString()}</td>
+                    <td className="px-4 py-2">{row.positiveOutcomes.toLocaleString()}</td>
+                    <td className="px-4 py-2">{((row.positiveOutcomes / row.patientsTreated) * 100).toFixed(1)}%</td>
+                    <td className="px-4 py-2">{row.sepsisAlerts}</td>
+                    <td className="px-4 py-2">{row.avgTreatmentTime.toFixed(0)} mins</td>
+                    <td className="px-4 py-2">{row.readmissions}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
+    </AnimatedSection>
+  );
+}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <AnimatedSection animation="scale" delay={100}>
-          <Card className="hover-scale">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Cases</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{analyticsData.total}</div>
-              <div className="flex items-center pt-1 text-sm text-green-600">
-                <ArrowUpRight className="h-4 w-4 mr-1" />
-                <span>+{Math.round((analyticsData.total - 112) / 112 * 100)}% from last year</span>
-              </div>
-            </CardContent>
-          </Card>
-        </AnimatedSection>
-
-        <AnimatedSection animation="scale" delay={150}>
-          <Card className="hover-scale">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Resolved Cases</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{analyticsData.resolved}</div>
-              <div className="flex items-center pt-1 text-sm text-green-600">
-                <ArrowUpRight className="h-4 w-4 mr-1" />
-                <span>+{Math.round((analyticsData.resolved / analyticsData.total) * 100)}% resolution rate</span>
-              </div>
-            </CardContent>
-          </Card>
-        </AnimatedSection>
-
-        <AnimatedSection animation="scale" delay={200}>
-          <Card className="hover-scale">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Early Detection Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {Math.round((analyticsData.detectionRate.earlyDetection / analyticsData.detectionRate.totalCases) * 100)}%
-              </div>
-              <div className="flex items-center pt-1 text-sm text-green-600">
-                <ArrowUpRight className="h-4 w-4 mr-1" />
-                <span>+8% from previous system</span>
-              </div>
-            </CardContent>
-          </Card>
-        </AnimatedSection>
+// Metric Card Component
+function MetricCard({
+  title,
+  value,
+  change,
+  icon,
+}: {
+  title: string;
+  value: string;
+  change: string;
+  icon: React.ReactNode;
+}) {
+  const isPositive = change.startsWith('+');
+  
+  return (
+    <div className="bg-card rounded-lg border p-4">
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="text-sm text-muted-foreground">{title}</p>
+          <p className="text-2xl font-bold mt-1">{value}</p>
+        </div>
+        <span className="text-foreground">{icon}</span>
       </div>
-
-      <Tabs defaultValue="trends">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="trends">Trends</TabsTrigger>
-          <TabsTrigger value="departments">Departments</TabsTrigger>
-          <TabsTrigger value="outcomes">Outcomes</TabsTrigger>
-          <TabsTrigger value="detection">Detection Metrics</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="trends" className="p-1">
-          <Card>
-            <CardHeader>
-              <CardTitle>Monthly Sepsis Cases</CardTitle>
-              <CardDescription>
-                Number of sepsis cases detected per month
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-2">
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={analyticsData.monthly}
-                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                  >
-                    <defs>
-                      <linearGradient id="colorCases" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-                        <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <Tooltip />
-                    <Area
-                      type="monotone"
-                      dataKey="cases"
-                      stroke="#8884d8"
-                      fillOpacity={1}
-                      fill="url(#colorCases)"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="departments" className="p-1">
-          <Card>
-            <CardHeader>
-              <CardTitle>Cases by Department</CardTitle>
-              <CardDescription>
-                Distribution of sepsis cases across hospital departments
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-2">
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={analyticsData.byDepartment}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="cases"
-                    >
-                      {analyticsData.byDepartment.map((entry: any, index: number) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="outcomes" className="p-1">
-          <Card>
-            <CardHeader>
-              <CardTitle>Patient Outcomes</CardTitle>
-              <CardDescription>
-                Status of patients following sepsis diagnosis
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-2">
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={[
-                      { name: 'Recovered', value: analyticsData.patientOutcomes.recovered },
-                      { name: 'Under Treatment', value: analyticsData.patientOutcomes.underTreatment },
-                      { name: 'Critical', value: analyticsData.patientOutcomes.critical },
-                    ]}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="value" name="Patients" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="detection" className="p-1">
-          <Card>
-            <CardHeader>
-              <CardTitle>Detection Metrics</CardTitle>
-              <CardDescription>
-                Early vs. late sepsis detection rates
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-2">
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'Early Detection', value: analyticsData.detectionRate.earlyDetection },
-                        { name: 'Late Detection', value: analyticsData.detectionRate.totalCases - analyticsData.detectionRate.earlyDetection },
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      <Cell fill="#00C49F" />
-                      <Cell fill="#FF8042" />
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      <p
+        className={`text-sm mt-2 ${
+          isPositive ? 'text-green-500' : 'text-red-500'
+        }`}
+      >
+        {change} vs previous period
+      </p>
     </div>
   );
-};
-
-export default Analytics;
+}

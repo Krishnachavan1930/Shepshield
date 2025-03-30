@@ -14,6 +14,7 @@ import ContactPage from "./pages/ContactPage";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import NotFound from "./pages/NotFound";
+import Analytics from "./pages/dashboard/Analytics";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/login" element={<LoginPage />} />
           <Route path="/dashboard/*" element={<DashboardPage />} />
           <Route path="*" element={<NotFound />} />
+          <Route path="/dashboard/*" element={<Analytics/>}/>
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

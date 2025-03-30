@@ -4,6 +4,7 @@ import cors from "cors";
 import sequelize from "./config/db";
 import morgan from "morgan"
 import PatientRoutes from "./routes/patient.routes";
+import cookieParser from "cookie-parser";
 import AnalyticsRoutes from "./routes/analytics.routes";
 configDotenv();
 
@@ -11,11 +12,18 @@ const app = express();
 app.use(express.json());
 const PORT = process.env.PORT;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: 'http://localhost:8080', // Allow only your frontend
+    credentials: true, // If using cookies or Authorization headers
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({extended : true}));
 app.use(morgan('dev'));
-
+app.use(cookieParser());
 app.use('/api/patients', PatientRoutes);
 app.use('/api/analytics', AnalyticsRoutes);
 
@@ -34,6 +42,5 @@ app.use((err : Error, req : Request, res : Response, next : NextFunction) => {
   });
 
 app.listen(PORT, async()=>{
-    await sequelize.sync({force : true});
     console.log("Server running on PORT", PORT);
 })

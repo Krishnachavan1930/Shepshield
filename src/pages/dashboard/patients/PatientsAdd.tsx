@@ -21,12 +21,12 @@ const PatientsAdd = () => {
   const form = useForm<PatientFormValues>({
     resolver: zodResolver(patientSchema),
     defaultValues: {
-      name: '',
-      age: undefined,
-      gender: '', // Empty string to show placeholder initially
+      name: 'abcd',
+      age: 30,
+      gender: 'Male', // Empty string to show placeholder initially
       admissionDate: new Date().toISOString().split('T')[0],
-      department: '', // Empty string to show placeholder initially
-      medicalRecordNumber: '',
+      department: 'ICU', // Empty string to show placeholder initially
+      medicalRecordNumber: 'avcdsde',
       temperature: undefined,
       heartRate: undefined,
       respiratoryRate: undefined,
@@ -36,7 +36,7 @@ const PatientsAdd = () => {
       medicalHistory: '',
       allergies: '',
       medications: '',
-      notes: '',
+      notes: ''
     },
   });
 
@@ -52,22 +52,22 @@ const PatientsAdd = () => {
   const calculateStatus = () => {
     const { temperature, heartRate, respiratoryRate } = form.getValues();
 
-    if (!temperature || !heartRate || !respiratoryRate) return 'Moderate';
+    if (!temperature || !heartRate || !respiratoryRate) return 'Medium';
 
     if (
       temperature > 38.5 || 
       heartRate > 100 || 
       respiratoryRate > 22
     ) {
-      return 'Severe';
+      return 'High';
     } else if (
       temperature > 38.0 || 
       heartRate > 90 || 
       respiratoryRate > 20
     ) {
-      return 'Moderate';
+      return 'Medium';
     } else {
-      return 'Mild';
+      return 'Low';
     }
   };
 
@@ -99,7 +99,8 @@ const PatientsAdd = () => {
 
       const patientData = {
         ...values,
-        status: calculateStatus(),
+        status : "Active",
+        riskLevel: calculateStatus(),
         riskScore: calculateRiskScore(),
         vitalSigns: {
           temperature: values.temperature,
@@ -115,7 +116,7 @@ const PatientsAdd = () => {
 
       const response = await patientService.createPatient(patientData);
       toast.success('Patient added successfully');
-
+      console.log(response.data);
       navigate(`/dashboard/patients/${response.data.id}`);
     } catch (error) {
       console.error('Error creating patient:', error);

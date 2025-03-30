@@ -12,7 +12,7 @@ LabResult.init({
     patientId: {
         type: DataTypes.INTEGER,
         references: {
-          model: "Patients",
+          model: "patients",
           key: "id",
         },
       },

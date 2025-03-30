@@ -14,14 +14,14 @@ export const sendWhatsAppAlert = async (req: Request, res: Response): Promise<vo
     }
 
     const message = `🚨 *Sepsis Alert* 🚨\nPatient: *${patientName}* (ID: *${patientId}*)\nSepsis Risk: *${sepsisRisk}%*\nImmediate medical attention is required.`;
-
-    const url = `https://graph.facebook.com/v16.0/${process.env.WA_PHONE_ID}/messages`;
-
+    console.log(message)
+    const url = `https://graph.facebook.com/v16.0/647749335078869/messages`;
+    console.log(process.env.WA_ACCESS_TOKEN);
     await axios.post(
       url,
       {
         messaging_product: "whatsapp",
-        to: whatsappNumber,
+        to: whatsappNumber as string, 
         type: "text",
         text: { body: message },
       },

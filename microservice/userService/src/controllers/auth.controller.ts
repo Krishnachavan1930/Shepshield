@@ -13,8 +13,10 @@ const createSendToken = (user: User, statusCode: number, res: Response): void =>
     const token = signToken(user.getDataValue("id")); 
 
     user.setDataValue("password_hash", undefined); 
-
+    console.log(token);
+    console.log(res.headersSent);
     if (!res.headersSent) {
+        console.log("Sending cookie");
         res.status(statusCode)
             .cookie("token", token, {
                 httpOnly: true, 

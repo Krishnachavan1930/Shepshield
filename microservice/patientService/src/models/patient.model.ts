@@ -59,13 +59,14 @@ Patient.init(
     notes: {
       type: DataTypes.TEXT,
     },
-    assignedDoctor: {
-      type: DataTypes.UUID,
+    assigneddoctor: {
+      type: DataTypes.INTEGER,
     },
   },
   {
     sequelize,
-    modelName: "Patient",
+    modelName: "Patients",
+    tableName : "patients",
     timestamps: true,
   }
 );

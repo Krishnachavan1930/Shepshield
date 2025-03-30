@@ -17,23 +17,40 @@ const PatientView = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    
     const fetchPatient = async () => {
       try {
         setLoading(true);
         const response = await patientService.getPatientById(Number(id));
-        setPatient(response.data);
+        
+        if (!response.data) {
+          throw new Error("No patient data found");
+        }
+  
+        console.log("Fetched patient data:", response.data);
+  
+        setPatient(response.data); // Set patient first
+        
+        // Log vital signs safely
+        if (response.data.vitalSigns) {
+          console.log("Vital Signs:", response.data.vitalSigns);
+        } else {
+          console.warn("Vital signs data is missing");
+        }
+        
       } catch (error) {
-        console.error('Error fetching patient:', error);
-        toast.error('Failed to load patient data');
+        console.error("Error fetching patient:", error);
+        toast.error("Failed to load patient data");
       } finally {
         setLoading(false);
       }
     };
-
+  
     if (id) {
       fetchPatient();
     }
   }, [id]);
+  
 
   const getRiskColor = (score: number) => {
     if (score >= 75) return 'bg-red-500';
@@ -74,7 +91,6 @@ const PatientView = () => {
       </div>
     );
   }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -153,9 +169,9 @@ const PatientView = () => {
                 <CardTitle className="text-sm font-medium text-muted-foreground">Temperature</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{patient.vitalSigns.temperature} °C</div>
+                <div className="text-2xl font-bold">{patient.vitalSigns.Temp} °C</div>
                 <p className="text-xs text-muted-foreground">
-                  {patient.vitalSigns.temperature > 38 ? 'Above normal' : 'Normal range'}
+                  {patient.vitalSigns.Temp > 38 ? 'Above normal' : 'Normal range'}
                 </p>
               </CardContent>
             </Card>
@@ -164,9 +180,9 @@ const PatientView = () => {
                 <CardTitle className="text-sm font-medium text-muted-foreground">Heart Rate</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{patient.vitalSigns.heartRate} bpm</div>
+                <div className="text-2xl font-bold">{patient.vitalSigns.HR} bpm</div>
                 <p className="text-xs text-muted-foreground">
-                  {patient.vitalSigns.heartRate > 100 ? 'Elevated' : 'Normal range'}
+                  {patient.vitalSigns.HR > 100 ? 'Elevated' : 'Normal range'}
                 </p>
               </CardContent>
             </Card>
@@ -175,9 +191,9 @@ const PatientView = () => {
                 <CardTitle className="text-sm font-medium text-muted-foreground">Respiratory Rate</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{patient.vitalSigns.respiratoryRate} /min</div>
+                <div className="text-2xl font-bold">{patient.vitalSigns.Resp} /min</div>
                 <p className="text-xs text-muted-foreground">
-                  {patient.vitalSigns.respiratoryRate > 20 ? 'Elevated' : 'Normal range'}
+                  {patient.vitalSigns.Resp > 20 ? 'Elevated' : 'Normal range'}
                 </p>
               </CardContent>
             </Card>
@@ -186,9 +202,9 @@ const PatientView = () => {
                 <CardTitle className="text-sm font-medium text-muted-foreground">Blood Pressure</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{patient.vitalSigns.bloodPressure} mmHg</div>
+                <div className="text-2xl font-bold">{patient.vitalSigns.SBP} mmHg</div>
                 <p className="text-xs text-muted-foreground">
-                  {parseInt(patient.vitalSigns.bloodPressure.split('/')[0]) > 140 ? 'Hypertensive' : 'Normal range'}
+                  {parseInt(patient.vitalSigns.SBP) > 140 ? 'Hypertensive' : 'Normal range'}
                 </p>
               </CardContent>
             </Card>
@@ -197,9 +213,9 @@ const PatientView = () => {
                 <CardTitle className="text-sm font-medium text-muted-foreground">Oxygen Saturation</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{patient.vitalSigns.oxygenSaturation}%</div>
+                <div className="text-2xl font-bold">{patient.vitalSigns.O2Sat}%</div>
                 <p className="text-xs text-muted-foreground">
-                  {patient.vitalSigns.oxygenSaturation < 95 ? 'Below normal' : 'Normal range'}
+                  {patient.vitalSigns.O2Sat < 95 ? 'Below normal' : 'Normal range'}
                 </p>
               </CardContent>
             </Card>

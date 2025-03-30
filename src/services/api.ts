@@ -1,14 +1,16 @@
 
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'http://localhost:5454';
 
 const api = axios.create({
   baseURL: API_URL,
+  withCredentials : true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
 
 // Add a request interceptor for authentication
 api.interceptors.request.use(
@@ -23,8 +25,8 @@ api.interceptors.request.use(
 );
 
 export const authService = {
-  login: async (username: string, password: string) => {
-    const response = await api.post('/auth/login', { username, password });
+  login: async (email: string, password: string) => {
+    const response = await api.post('/auth/api/auth/login', { email, password });
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
@@ -34,28 +36,28 @@ export const authService = {
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    return api.post('/auth/logout');
+    return api.post('/auth/auth/logout');
   },
   getCurrentUser: async () => {
-    return api.get('/auth/me');
+    return api.get('/auth/auth/me');
   },
 };
 
 export const patientService = {
   getAllPatients: async () => {
-    return api.get('/patients');
+    return api.get('/patients/api/patients');
   },
   getPatientById: async (id: number) => {
-    return api.get(`/patients/${id}`);
+    return api.get(`/patients/api/patients/${id}`);
   },
   createPatient: async (patientData: any) => {
-    return api.post('/patients', patientData);
+    return api.post('/patients/api/patients', patientData);
   },
   updatePatient: async (id: number, patientData: any) => {
-    return api.put(`/patients/${id}`, patientData);
+    return api.put(`/patients/api/patients/${id}`, patientData);
   },
   deletePatient: async (id: number) => {
-    return api.delete(`/patients/${id}`);
+    return api.delete(`/patients/api/patients/${id}`);
   },
 };
 

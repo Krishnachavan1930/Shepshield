@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import morgan from "morgan";
@@ -19,9 +19,11 @@ app.use(cors()); // Enable Cross-Origin Resource Sharing
 app.use(morgan("dev")); // Log requests
 
 // Routes
-app.use("/api", emailRoutes);
-app.use("/api", whatsappRoutes);
-
+app.use("/api/email", emailRoutes);
+app.use("/api/wp", whatsappRoutes);
+app.use('/', async(req : Request, res : Response)=>{
+  res.send("Notification service up and running");
+});
 // Start the Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

@@ -1,5 +1,8 @@
-import { Patient, VitalSigns } from "../models/patient.model";
+import { LabResult, Patient, VitalSigns } from "../models/patient.model";
 import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+import { Sequelize } from "sequelize";
+import { JWT_SECRET } from "../config/config";
 export const getAllPatients = async(req : Request, res : Response, next : NextFunction)=>{
     try{
         let query:Record<string, any> = {};
@@ -36,37 +39,120 @@ export const getAllPatients = async(req : Request, res : Response, next : NextFu
 
 
 export const getPatient = async(req : Request, res : Response, next : NextFunction)=>{
-    try{
-        const patient = await Patient.findByPk(req.params.id);
-        if(!patient){
+    try {
+        console.log(req.params);
+        
+        // Fetch patient
+        let patient = await Patient.findByPk(req.params.id);
+        if (!patient) {
             res.status(404).json({
-                success : false,
-                message : "Patient not found"
+                success: false,
+                message: "Patient not found",
             });
         }
-        res.status(200).json({
-            success : true,
-            data : patient
+        
+        console.log(1);
+    
+        // Convert patient instance to plain object
+        let patientData = patient!.toJSON();
+    
+        // Fetch vital signs
+        const vitalSigns = await VitalSigns.findOne({
+            where: { patientId: req.params.id },
+            order: [['createdAt', 'DESC']], // Fetch latest entry
         });
-    }catch(err){
+    
+        console.log(2);
+    
+        // Attach vitalSigns to patient data
+        patientData.vitalSigns = vitalSigns ? vitalSigns.toJSON() : null;
+    
+        // Fetch lab results
+        const lab = await LabResult.findOne({
+            where: { patientId: req.params.id },
+            order: [['createdAt', 'DESC']],
+        });
+    
+        console.log(3);
+    
+        // Attach lab results to patient data
+        patientData.labResults = lab ? lab.toJSON() : null;
+    
+        // Return response
+        res.status(200).json({
+            success: true,
+            data: patientData,
+        });
+    } catch (err) {
         next(err);
     }
 }
 
-export const createPatient = async(req : Request, res : Response, next : NextFunction)=>{
-    try{
-        if(!req.body.riskScore && req.body.vitalSigns){
+// export const createPatient = async(req : Request, res : Response, next : NextFunction)=>{
+//     try{
+//         if(!req.body.riskScore && req.body.vitalSigns){
+//             req.body.riskScore = calculateRiskScore(req.body.vitalSigns);
+//         }
+//         console.log(req.cookies.token);   
+//         console.log("Creating patient")
+//         req.body.assigneddoctor = req.cookies.token;
+//         const patient = await Patient.create(req.body);
+//         console.log("Patient created");
+//         res.status(201).json({
+//             success : true,
+//             data : patient
+//         });
+//     }catch(err){
+//         next(err);
+//     }
+// }
+
+export const createPatient = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        if (!req.body.riskScore && req.body.vitalSigns) {
             req.body.riskScore = calculateRiskScore(req.body.vitalSigns);
         }
+
+        console.log("Token from cookies:", req.cookies.token);
+        
+        if (!req.cookies.token) {
+            res.status(401).json({ success: false, message: "Authentication token missing" });
+            return;
+        }
+
+        // Decode the JWT token
+        const decoded = jwt.verify(req.cookies.token, JWT_SECRET) as any;
+
+        console.log("Decoded User:", decoded);
+        
+        if (!decoded.id) {
+            res.status(401).json({ success: false, message: "Invalid token" });
+            return;
+        }
+
+        // Assign the doctor's ID
+        req.body.assigneddoctor = 1;
+        console.log(req.body.assigneddoctor);
+        console.log("Creating patient");
         const patient = await Patient.create(req.body);
+        console.log("Patient created");
+
         res.status(201).json({
-            success : true,
-            data : patient
+            success: true,
+            data: patient
         });
-    }catch(err){
-        next(err);
+    } catch (err) {
+        console.error("Sequelize Error:", err);
+    if (err instanceof Sequelize) {
+        console.error("Validation Error:", err);
+    } else if (err instanceof Sequelize) {
+        console.error("Database Error:", err);
+    } else {
+        console.error("Unexpected Error:", err);
     }
-}
+        next(err); // Properly pass errors to Express error handling
+    }
+};
 
 
 export const updatePatient = async(req : Request, res : Response, next : NextFunction)=>{

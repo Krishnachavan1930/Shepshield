@@ -202,10 +202,10 @@ const DashboardHome = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-2">
-                <Button variant="outline" className="justify-start">
+                {/* <Button variant="outline" className="justify-start">
                   <FileUp className="mr-2 h-4 w-4" />
                   Upload New Report
-                </Button>
+                </Button> */}
                 <Button
                   variant="outline"
                   className="justify-start"

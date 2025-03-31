@@ -10,12 +10,12 @@ const ContactPage = () => {
     <PageLayout>
       <div className="pt-12 pb-24">
         <div className="container-wide">
-          <AnimatedSection animation="slide-up" className="mb-12">
+          {/* <AnimatedSection animation="slide-up" className="mb-12">
             <SectionHeading
               title="Contact Our Team"
               subtitle="Get in touch with our sepsis care specialists to learn how we can help your healthcare facility."
             />
-          </AnimatedSection>
+          </AnimatedSection> */}
           
           <Contact />
         </div>

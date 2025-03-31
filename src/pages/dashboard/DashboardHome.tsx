@@ -7,9 +7,18 @@ import AnimatedSection from "@/components/AnimatedSection"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { useNavigate } from "react-router-dom"
+import axios from "axios"
+
+
+interface StatusResponse {
+  mlModelStatus: boolean;
+  alertSystemStatus: boolean;
+  dbStatus: boolean;
+}
 
 const DashboardHome = () => {
   const navigate = useNavigate()
+  const [status, setStatus] = useState<StatusResponse | null>(null);
   const [averageRiskScore, setAverageRiskScore] = useState(0)
   const [dashboardData, setDashboardData] = useState<{
     activePatients: number;
@@ -23,6 +32,26 @@ const DashboardHome = () => {
     departmentCounts: Record<string, number>;
   } | null>(null);
   const [loading, setLoading] = useState(true)
+
+
+
+  const fetchStatus = async () => {
+    try {
+      console.log("Fetching")
+      const response = await axios.get<StatusResponse>('http://localhost:5454/api/checkStatus');
+      console.log(response.data);
+      setStatus(response.data);
+    } catch (err) { 
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchStatus();
+  }, []);
+
+
+
 
   useEffect(() => {
     const fetchRiskScore = async () => {
@@ -257,33 +286,23 @@ const DashboardHome = () => {
                   <p className="text-sm">ML Model Status</p>
                   <div className="flex items-center text-green-600">
                     <span className="h-2 w-2 rounded-full bg-green-600 mr-1"></span>
-                    <span className="text-xs">Operational</span>
+                    <span className="text-xs">{status ? status.mlModelStatus? "Operational" : "Down" : "Down"}</span>
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
                   <p className="text-sm">Database Sync</p>
                   <div className="flex items-center text-green-600">
                     <span className="h-2 w-2 rounded-full bg-green-600 mr-1"></span>
-                    <span className="text-xs">Updated 5m ago</span>
+                    <span className="text-xs">{status ? "Operational" : "Down"}</span>
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
                   <p className="text-sm">Alert System</p>
                   <div className="flex items-center text-green-600">
                     <span className="h-2 w-2 rounded-full bg-green-600 mr-1"></span>
-                    <span className="text-xs">Operational</span>
+                    <span className="text-xs">{status ? "Operational" : "Down"}</span>
                   </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <p className="text-sm">Hospital API</p>
-                  <div className="flex items-center text-yellow-600">
-                    <span className="h-2 w-2 rounded-full bg-yellow-600 mr-1"></span>
-                    <span className="text-xs">Minor Disruption</span>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm" className="w-full mt-2">
-                  System Details
-                </Button>
               </div>
             </CardContent>
           </Card>

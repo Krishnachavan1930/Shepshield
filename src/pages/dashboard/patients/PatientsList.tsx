@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { patientService } from '@/services/api';
+import { useNavigate } from 'react-router-dom';
 
 interface Patient {
   id: string;
@@ -67,34 +68,30 @@ const PatientsList = () => {
     );
   };
 
-  const handleDelete = (patientId: string) => {
+  const handleDelete = async(patientId: string) => {
     if (window.confirm('Are you sure you want to delete this patient?')) {
+      await patientService.deletePatient(parseInt(patientId));
       toast.success(`Patient ${patientId} deleted`);
     }
   };
 
   const handleExport = () => {
     try {
-      // Initialize PDF in landscape mode
+      
       const doc = new jsPDF('l', 'pt', 'a4');
       
-      // Add hospital logo (optional)
-      // const imgData = '/logo.png';
-      // doc.addImage(imgData, 'PNG', 40, 20, 50, 50);
-      
-      // Title
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(24);
       doc.setTextColor(33, 37, 41);
       doc.text('SHEPSHIELD HOSPITAL - PATIENT RECORDS', 40, 60);
       
-      // Subtitle
+      
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(12);
       doc.setTextColor(100, 100, 100);
       doc.text(`Generated: ${new Date().toLocaleString()} | Total Patients: ${patients.length}`, 40, 80);
       
-      // Table data
+      
       const headers = [
         ['ID', 'Patient Name', 'Age/Gender', 'Department', 'Risk Level', 'Status', 'Last Updated']
       ];
@@ -109,7 +106,7 @@ const PatientsList = () => {
         patient.lastUpdated
       ]);
       
-      // Generate table
+      
       autoTable(doc, {
         head: headers,
         body: data,
@@ -139,7 +136,7 @@ const PatientsList = () => {
           6: { cellWidth: 80 }
         },
         didParseCell: (data) => {
-          // Color code risk levels
+          
           if (data.column.index === 4 && data.section === 'body') {
             const risk = data.cell.raw;
             data.cell.styles.textColor = 
@@ -147,7 +144,7 @@ const PatientsList = () => {
               risk === 'Medium' ? [255, 193, 7] :
               [25, 135, 84];
           }
-          // Color code status
+          
           if (data.column.index === 5 && data.section === 'body') {
             const status = data.cell.raw;
             data.cell.styles.textColor = 
@@ -158,7 +155,7 @@ const PatientsList = () => {
         }
       });
       
-      // Footer
+      
       const pageCount = doc.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
@@ -176,11 +173,11 @@ const PatientsList = () => {
         );
       }
       
-      // Save PDF
+      
       const fileName = `Patient_Records_${new Date().toISOString().slice(0, 10)}.pdf`;
       doc.save(fileName);
       
-      // Success notification
+      
       toast.success("Export Successful", {
         description: `Patient records exported to ${fileName}`,
         action: {
@@ -243,7 +240,17 @@ const PatientsList = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="all">
+          <Tabs defaultValue="all" onValueChange={(value) => {
+            if (value === 'all') {
+              setFilters({ ...filters, status: 'all', risk: 'all' });
+            } else if (value === 'high') {
+              setFilters({ ...filters, risk: 'high' });
+            } else if (value === 'active') {
+              setFilters({ ...filters, status: 'active' });
+            } else if (value === 'discharged') {
+              setFilters({ ...filters, status: 'discharged' });
+            }
+          }}>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
               <TabsList>
                 <TabsTrigger value="all">All Patients</TabsTrigger>
@@ -421,7 +428,7 @@ const FilterSelect = ({
 }) => (
   <div className="flex items-center space-x-2">
     <p className="text-sm font-medium">{label}:</p>
-    <Select value={value} onValueChange={onChange}>
+    <Select value={value} onValueChange={(newValue) => onChange(newValue)}>
       <SelectTrigger className="h-8 w-[130px]">
         <SelectValue placeholder="Select" />
       </SelectTrigger>

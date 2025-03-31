@@ -186,7 +186,10 @@ const Monitoring = () => {
 
         // Fetch vitals history (assuming separate endpoint or included in getPatientById)
         const vitalsResponse = await patientService.getPatientVitals(selectedPatient); // Adjust endpoint
-        const vitalsData = vitalsResponse.data.data;
+        const originalvitalsData = vitalsResponse.data.data;
+        const vitalsData = originalvitalsData.slice(0, Math.ceil(originalvitalsData.length / 4));
+
+
         console.log("Vital Data", vitalsData)
         // Fetch progress data
         const progressResponse = await patientService.getPatientProgress(selectedPatient);

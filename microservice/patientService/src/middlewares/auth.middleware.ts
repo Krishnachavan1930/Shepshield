@@ -11,6 +11,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
         let token;
         if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
             token = req.headers.authorization.split(' ')[1];
+            console.log("Protect token", token);
         }
         if (!token) {
             res.status(401).json({
@@ -21,7 +22,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
 
         
         const decoded_token = jwt.verify(token as string, process.env.JWT_SECRET as string) as JwtPayload;
-
+        console.log(decoded_token);
         if (!decoded_token) {
             res.status(401).json({
                 success: false,
@@ -47,6 +48,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
 
 export const restrictIo = (...roles: string[]) => {
     return (req: Request, res: Response, next: NextFunction) => {
+        console.log("Printing Req user", req.user);
         if (!roles.includes(req.user?.role)) {
             res.status(403).json({
                 success: false,

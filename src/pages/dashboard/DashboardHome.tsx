@@ -154,25 +154,34 @@ const DashboardHome = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {departments.map((dept) => (
-                  <div key={dept.name} className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <p className="font-medium">{dept.name}</p>
-                        <div className="text-xs text-muted-foreground flex items-center">
-                          {dept.trend === "up" ? (
-                            <ArrowUp className="h-3 w-3 text-destructive mr-1" />
-                          ) : (
-                            <ArrowDown className="h-3 w-3 text-green-500 mr-1" />
-                          )}
-                          <span>{dept.change}% from previous month</span>
-                        </div>
-                      </div>
-                      <p className="font-medium">{dept.cases} cases</p>
-                    </div>
-                    <Progress value={dept.percentage} />
-                  </div>
-                ))}
+              {dashboardData &&
+  Object.entries(dashboardData.departmentCounts).map(([name, cases]) => {
+    const previousCases = 10; // Replace this with actual previous month data if available
+    const change = previousCases ? (((cases - previousCases) / previousCases) * 100).toFixed(1) : 0;
+    const trend = cases > previousCases ? "up" : "down";
+    const percentage = (cases / 100) * 100; // Assuming 100 is the max, adjust as needed
+
+    return (
+      <div key={name} className="space-y-1">
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <p className="font-medium">{name}</p>
+            <div className="text-xs text-muted-foreground flex items-center">
+              {trend === "up" ? (
+                <ArrowUp className="h-3 w-3 text-destructive mr-1" />
+              ) : (
+                <ArrowDown className="h-3 w-3 text-green-500 mr-1" />
+              )}
+              <span>{change}% from previous month</span>
+            </div>
+          </div>
+          <p className="font-medium">{cases} cases</p>
+        </div>
+        <Progress value={percentage} />
+      </div>
+    );
+  })}
+
                 <Button variant="outline" className="w-full mt-4">
                   View Detailed Analytics
                 </Button>

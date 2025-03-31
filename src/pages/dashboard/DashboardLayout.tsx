@@ -323,7 +323,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               <Search className="h-5 w-5" />
             </Button>
 
-            <Popover open={isOpen} onOpenChange={setIsOpen}>
+            {/* <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
@@ -345,7 +345,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <p className="text-gray-500 text-sm">No new notifications</p>
         )}
       </PopoverContent>
-    </Popover>
+    </Popover> */}
 
             {/* <Button variant="ghost" size="icon" className="text-muted-foreground hidden sm:flex">
               <MessageSquare className="h-5 w-5" />

@@ -11,6 +11,7 @@ class VitalSigns extends Model{
     public MAP? : number;
     public DBP? : number;
     public O2Sat? : any;
+    public recordedAt? : Date;
 }
 
 VitalSigns.init({

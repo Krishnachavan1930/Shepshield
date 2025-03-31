@@ -2,7 +2,12 @@ import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/db";
 import VitalSigns from "./vitals.model";
 import LabResult from "./lab.model";
-class Patient extends Model {}
+class Patient extends Model {
+  public riskScore? : number;
+  public admissionDate? : Date;
+  public medications? : string;
+
+}
 
 Patient.init(
   {

@@ -1,7 +1,46 @@
 import {DataTypes, Model} from "sequelize";
 import sequelize from "../config/db";
 
-class LabResult extends Model{}
+class LabResult extends Model {
+  public id!: number;
+  public patientId!: number;
+  public testType!: string;
+  public BaseExcess?: number;
+  public HCO3?: number;
+  public FiO2?: number;
+  public pH?: number;
+  public PaCO2?: number;
+  public SaO2?: number;
+  public AST?: number;
+  public BUN?: number;
+  public Alkalinephos?: number;
+  public Calcium?: number;
+  public Chloride?: number;
+  public Creatinine?: number;
+  public Bilirubin_direct?: number;
+  public Glucose?: number;
+  public Lactate?: number;
+  public Magnesium?: number;
+  public Phosphate?: number;
+  public Potassium?: number;
+  public Bilirubin_total?: number;
+  public TroponinI?: number;
+  public Hct?: number;
+  public Hgb?: number;
+  public PTT?: number;
+  public WBC?: number;
+  public Fibrinogen?: number;
+  public Platelets?: number;
+  public Age?: number;
+  public Gender?: number;
+  public Unit1?: number;
+  public Unit2?: number;
+  public Hour_sin?: number;
+  public Hour_cos?: number;
+  public risk_percent?: number;
+  public risk_level?: "High" | "Medium" | "Low";
+  public recordedAt!: Date;
+}
 
 LabResult.init({
     id : {

@@ -19,7 +19,7 @@ export const getAllPatients = async(req : Request, res : Response, next : NextFu
 
         const { rows: patient, count: total } = await Patient.findAndCountAll({
             where: query,
-            order: [[String(req.query.sort || "name"), "ASC"]],
+            order: [[String("id"), "ASC"]],
             limit,
             offset,
             });
@@ -198,7 +198,200 @@ export const deletePatient = async(req : Request, res : Response, next : NextFun
     }
 }
 
+// const calculateSOFAScore = (vital: VitalSigns, lab: LabResult): number => {
+//   let sofa = 0;
+//   if (vital?.O2Sat && vital.O2Sat < 90) sofa += 2;
+//   else if (vital?.O2Sat && vital.O2Sat < 95) sofa += 1;
+//   if (vital?.MAP && vital.MAP < 70) sofa += 1;
+//   if (lab?.Creatinine && lab.Creatinine > 2.0) sofa += 2;
+//   else if (lab?.Creatinine && lab.Creatinine > 1.2) sofa += 1;
+//   if (lab?.Bilirubin_total && lab.Bilirubin_total > 2.0) sofa += 2;
+//   else if (lab?.Bilirubin_total && lab.Bilirubin_total > 1.2) sofa += 1;
+//   if (lab?.Platelets && lab.Platelets < 100) sofa += 2;
+//   else if (lab?.Platelets && lab.Platelets < 150) sofa += 1;
+//   return sofa;
+// };
 
+// const calculateQSOFAScore = (vital: VitalSigns): number => {
+//   let qsofa = 0;
+//   if (vital?.Resp && vital.Resp >= 22) qsofa += 1;
+//   if (vital?.SBP && vital.SBP <= 100) qsofa += 1;
+//   return qsofa;
+// };
+
+// export const getPatientProgress = async (req: Request, res: Response, next: NextFunction) => {
+//   try {
+//     const patientId = parseInt(req.params.id);
+
+//     const patient = await Patient.findByPk(patientId);
+//     if (!patient) {
+//       res.status(404).json({ success: false, message: 'Patient not found' });
+//     }
+
+//     const vitalSigns = await VitalSigns.findAll({
+//       where: { patientId },
+//       order: [['recordedAt', 'ASC']],
+//       limit: 10,
+//     });
+
+//     const labResults = await LabResult.findAll({
+//       where: { patientId },
+//       order: [['recordedAt', 'ASC']],
+//       limit: 3,
+//     });
+
+//     console.log('Patient:', patient!.toJSON());
+//     console.log('VitalSigns:', vitalSigns.map(v => v.toJSON()));
+//     console.log('LabResults:', labResults.map(l => l.toJSON()));
+
+//     if (!vitalSigns.length && !labResults.length) {
+//       res.json({
+//         success: true,
+//         data: [],
+//         message: 'No vital signs or lab results found for this patient',
+//       });
+//     }
+
+//     const timestamps = new Set<string>();
+//     vitalSigns.forEach(v => {
+//       if (v.recordedAt) timestamps.add(v.recordedAt.toISOString());
+//     });
+//     labResults.forEach(l => {
+//       if (l.recordedAt) timestamps.add(l.recordedAt.toISOString());
+//     });
+
+//     console.log('Timestamps:', Array.from(timestamps));
+
+//     const progressData = [];
+//     for (const timestamp of timestamps) {
+//       const vital = vitalSigns.find(v => v.recordedAt && v.recordedAt.toISOString() === timestamp) || {} as VitalSigns;
+//       const lab = labResults.find(l => l.recordedAt && l.recordedAt.toISOString() === timestamp) || {} as LabResult;
+
+//       console.log(`Processing timestamp: ${timestamp}`);
+//       console.log('Vital for timestamp:', vital.toJSON());
+//       console.log('Lab for timestamp:', lab.toJSON());
+
+//       const sofa = calculateSOFAScore(vital, lab);
+//       const qsofa = calculateQSOFAScore(vital);
+
+//       progressData.push({
+//         date: timestamp ? new Date(timestamp).toLocaleDateString() : 'Unknown',
+//         sofa,
+//         qsofa,
+//         risk: patient?.riskScore ?? 0,
+//         lactate: lab.Lactate ?? 0,
+//         antibiotics: 'N/A',
+//       });
+//     }
+
+//     console.log('Progress Data:', progressData);
+
+//     res.json({
+//       success: true,
+//       data: progressData,
+//     });
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
+// Simplified SOFA score calculation
+const calculateSOFAScore = (vital: any, lab: any): number => {
+    let sofa = 0;
+    if (vital?.O2Sat && vital.O2Sat < 90) sofa += 2;
+    else if (vital?.O2Sat && vital.O2Sat < 95) sofa += 1;
+    if (vital?.MAP && vital.MAP < 70) sofa += 1;
+    if (lab?.Creatinine && lab.Creatinine > 2.0) sofa += 2;
+    else if (lab?.Creatinine && lab.Creatinine > 1.2) sofa += 1;
+    if (lab?.Bilirubin_total && lab.Bilirubin_total > 2.0) sofa += 2;
+    else if (lab?.Bilirubin_total && lab.Bilirubin_total > 1.2) sofa += 1;
+    if (lab?.Platelets && lab.Platelets < 100) sofa += 2;
+    else if (lab?.Platelets && lab.Platelets < 150) sofa += 1;
+    return sofa;
+  };
+  
+  // Simplified qSOFA score calculation
+  const calculateQSOFAScore = (vital: any): number => {
+    let qsofa = 0;
+    if (vital?.Resp && vital.Resp >= 22) qsofa += 1;
+    if (vital?.SBP && vital.SBP <= 100) qsofa += 1;
+    return qsofa;
+  };
+  
+  export const getPatientProgress = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const patientId = parseInt(req.params.id);
+  
+      const patient = await Patient.findByPk(patientId);
+      // Removed: return res.status(404).json({ success: false, message: 'Patient not found' });
+      // If patient is null, we'll still proceed but log it
+  
+      const vitalSigns = await VitalSigns.findAll({
+        where: { patientId },
+        order: [['recordedAt', 'ASC']],
+        limit: 10,
+        raw: true, // Raw data to avoid Sequelize instance issues
+      });
+  
+      const labResults = await LabResult.findAll({
+        where: { patientId },
+        order: [['recordedAt', 'ASC']],
+        limit: 3,
+        raw: true, // Raw data
+      });
+  
+      console.log('Patient (raw):', patient ? patient.toJSON() : 'No patient found');
+      console.log('VitalSigns (raw):', vitalSigns);
+      console.log('LabResults (raw):', labResults);
+  
+      if (!labResults.length) {
+        res.json({
+          success: true,
+          data: [],
+          message: 'No lab results found for this patient',
+        });
+        return;
+      }
+  
+      const progressData = labResults.map(lab => {
+        const vital = vitalSigns.length
+          ? (vitalSigns.find(v =>
+              v.recordedAt && lab.recordedAt &&
+              new Date(v.recordedAt).getTime() === new Date(lab.recordedAt).getTime()
+            ) || vitalSigns[vitalSigns.length - 1]) // Fallback to latest vital
+          : {};
+  
+        console.log('Lab Record (raw):', lab);
+        console.log('Matched Vital (raw):', vital);
+  
+        const sofa = calculateSOFAScore(vital, lab);
+        const qsofa = calculateQSOFAScore(vital);
+  
+        return {
+          date: lab.recordedAt
+            ? new Date(lab.recordedAt).toLocaleDateString()
+            : (patient && patient.admissionDate
+                ? new Date(patient.admissionDate).toLocaleDateString()
+                : 'No Date Recorded'),
+          sofa,
+          qsofa,
+          risk: lab.risk_percent ?? (patient ? patient.riskScore : 0) ?? 0,
+          lactate: lab.Lactate ?? 0,
+          antibiotics: patient && patient.medications && patient.medications !== 'None' ? patient.medications : 'N/A',
+        };
+      });
+  
+      console.log('Progress Data:', progressData);
+  
+      res.json({
+        success: true,
+        data: progressData,
+      });
+    } catch (err) {
+      console.error('Error:', err);
+      next(err);
+    }
+  };
 const calculateRiskScore = (vitalSigns : VitalSigns) => {
     let score = 30;
     

@@ -105,7 +105,7 @@ export default function Analytics() {
     setIsLoading(true);
     try {
       const generalData = await analyticsService.getAnalytics();
-      setGeneralAnalytics(generalData);
+      setGeneralAnalytics(generalData.data.data);
       toast.success('Patient data refreshed');
     } catch (error) {
       toast.error('Failed to refresh data');

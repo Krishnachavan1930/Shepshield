@@ -1,6 +1,6 @@
 import express from "express";
 import { protect, restrictIo } from "../middlewares/auth.middleware";
-import { createPatient, deletePatient, getAllPatients, getPatient, updatePatient } from "../controllers/patient.controller";
+import { createPatient, deletePatient, getAllPatients, getPatient, getPatientProgress, updatePatient } from "../controllers/patient.controller";
 import { addVitalSigns, getPatientVitals } from "../controllers/vitals.controller";
 import { addLabResult, getPatientLab } from "../controllers/lab.controller";
 
@@ -28,6 +28,6 @@ router.route('/:id/labs')
     .get(getPatientLab)
     .post(addLabResult);
 
-
+router.get('/:id/progress', getPatientProgress);
 
 export default router;

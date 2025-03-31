@@ -59,6 +59,15 @@ export const patientService = {
   deletePatient: async (id: number) => {
     return api.delete(`/patients/api/patients/${id}`);
   },
+  getPatientProgress: async (id: number) => {
+    return api.get(`/patients/api/patients/${id}/progress`);
+  },
+  getPatientLab: async(id : number)=>{
+    return api.get(`/patients/api/patients/${id}/labs`);
+  },
+  getPatientVitals : async(id : number)=>{
+    return api.get(`/patients/api/patients/${id}/vitals`);
+  }
 };
 
 export const analyticsService = {
@@ -78,5 +87,15 @@ export const analyticsService = {
     return api.get('/patients/api/analytics/outcomes');
   },
 };
+
+
+export const reportService = {
+  generateReport : async(id: number)=>{
+    return api.get(`/reports/api/id/report/${id}`);
+  },
+  manualFineTune : async()=>{
+    return  api.get('/reports/LLM/fine_tune');
+  }
+}
 
 export default api;

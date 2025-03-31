@@ -3,7 +3,11 @@ import sequelize from "../config/db";
 
 class User extends Model{
   public id!: number;
-  public password! : string;
+  public password_hash! : string;
+  public email! : string;
+  public role! : any;
+  public department! : any;
+  public avatar! : string;
 }
 
 User.init({

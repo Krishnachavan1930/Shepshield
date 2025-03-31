@@ -1,27 +1,35 @@
-import React from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Activity,
-  Users,
-  FileUp,
-  AlertCircle,
-  Lightbulb,
-  ArrowUp,
-  ArrowDown,
-} from "lucide-react";
-import AnimatedSection from "@/components/AnimatedSection";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { useNavigate } from "react-router-dom";
+"use client"
+
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Activity, Users, AlertCircle, Lightbulb, ArrowUp, ArrowDown } from "lucide-react"
+import AnimatedSection from "@/components/AnimatedSection"
+import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import { useNavigate } from "react-router-dom"
 
 const DashboardHome = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+  const [averageRiskScore, setAverageRiskScore] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchRiskScore = async () => {
+      try {
+        const response = await fetch("https://your-backend-api.com/risk-score/average")
+        const data = await response.json()
+        setAverageRiskScore(data.averageRiskScore)
+      } catch (error) {
+        console.error("Error fetching average risk score:", error)
+        // Set a default value in case of error
+        setAverageRiskScore(0)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchRiskScore()
+  }, [])
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start mb-6">
@@ -39,16 +47,12 @@ const DashboardHome = () => {
         <AnimatedSection animation="scale" delay={100}>
           <Card className="hover-scale">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Active Patients
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Active Patients</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">128</div>
-              <p className="text-xs text-muted-foreground">
-                +12% from last month
-              </p>
+              <p className="text-xs text-muted-foreground">+12% from last month</p>
               <Progress className="mt-2" value={72} />
             </CardContent>
           </Card>
@@ -57,9 +61,7 @@ const DashboardHome = () => {
         <AnimatedSection animation="scale" delay={150}>
           <Card className="hover-scale">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Sepsis Alerts
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Sepsis Alerts</CardTitle>
               <AlertCircle className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
@@ -73,17 +75,13 @@ const DashboardHome = () => {
         <AnimatedSection animation="scale" delay={200}>
           <Card className="hover-scale">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Reports Processed
-              </CardTitle>
-              <FileUp className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Average Risk Score</CardTitle>
+              <Lightbulb className="h-4 w-4 text-yellow-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">287</div>
-              <p className="text-xs text-muted-foreground">
-                +18% from last week
-              </p>
-              <Progress className="mt-2" value={64} />
+              <div className="text-2xl font-bold">{loading ? "Loading..." : `${averageRiskScore}%`}</div>
+              <p className="text-xs text-muted-foreground">Calculated across all patients</p>
+              <Progress className="mt-2" value={averageRiskScore || 0} />
             </CardContent>
           </Card>
         </AnimatedSection>
@@ -91,9 +89,7 @@ const DashboardHome = () => {
         <AnimatedSection animation="scale" delay={250}>
           <Card className="hover-scale">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Predicted Outcomes
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Predicted Outcomes</CardTitle>
               <Lightbulb className="h-4 w-4 text-yellow-500" />
             </CardHeader>
             <CardContent>
@@ -110,41 +106,22 @@ const DashboardHome = () => {
           <Card className="h-full">
             <CardHeader>
               <CardTitle>Recent Patients</CardTitle>
-              <CardDescription>
-                Recent patients monitored for sepsis risk
-              </CardDescription>
+              <CardDescription>Recent patients monitored for sepsis risk</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {recentPatients.map((patient) => (
-                  <div
-                    key={patient.id}
-                    className="flex items-center justify-between border-b pb-3"
-                  >
+                  <div key={patient.id} className="flex items-center justify-between border-b pb-3">
                     <div className="flex items-center space-x-4">
-                      <div
-                        className={`w-3 h-3 rounded-full ${getRiskColor(
-                          patient.riskLevel
-                        )}`}
-                      />
+                      <div className={`w-3 h-3 rounded-full ${getRiskColor(patient.riskLevel)}`} />
                       <div>
                         <p className="font-medium">{patient.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          ID: {patient.id}
-                        </p>
+                        <p className="text-sm text-muted-foreground">ID: {patient.id}</p>
                       </div>
                     </div>
                     <div className="text-sm">
-                      <p
-                        className={`font-medium ${getRiskTextColor(
-                          patient.riskLevel
-                        )}`}
-                      >
-                        {patient.riskLevel} Risk
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {patient.lastUpdated}
-                      </p>
+                      <p className={`font-medium ${getRiskTextColor(patient.riskLevel)}`}>{patient.riskLevel} Risk</p>
+                      <p className="text-xs text-muted-foreground">{patient.lastUpdated}</p>
                     </div>
                   </div>
                 ))}
@@ -160,9 +137,7 @@ const DashboardHome = () => {
           <Card className="h-full">
             <CardHeader>
               <CardTitle>Risk Trends</CardTitle>
-              <CardDescription>
-                Sepsis detection by department (last 30 days)
-              </CardDescription>
+              <CardDescription>Sepsis detection by department (last 30 days)</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
@@ -206,19 +181,11 @@ const DashboardHome = () => {
                   <FileUp className="mr-2 h-4 w-4" />
                   Upload New Report
                 </Button> */}
-                <Button
-                  variant="outline"
-                  className="justify-start"
-                  onClick={() => navigate("/dashboard/patients/add")}
-                >
+                <Button variant="outline" className="justify-start" onClick={() => navigate("/dashboard/patients/add")}>
                   <Users className="mr-2 h-4 w-4" />
                   Add New Patient
                 </Button>
-                <Button
-                  variant="outline"
-                  className="justify-start"
-                  onClick={() => navigate("/dashboard/analytics")}
-                >
+                <Button variant="outline" className="justify-start" onClick={() => navigate("/dashboard/analytics")}>
                   <Activity className="mr-2 h-4 w-4" />
                   Review Alerts
                 </Button>
@@ -235,21 +202,14 @@ const DashboardHome = () => {
             <CardContent>
               <div className="space-y-2">
                 {schedule.slice(0, 3).map((item, i) => (
-                  <div
-                    key={i}
-                    className="flex justify-between items-center border-b pb-2"
-                  >
+                  <div key={i} className="flex justify-between items-center border-b pb-2">
                     <div>
                       <p className="font-medium">{item.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.time}
-                      </p>
+                      <p className="text-xs text-muted-foreground">{item.time}</p>
                     </div>
                     <div
                       className={`text-xs px-2 py-1 rounded-full ${
-                        item.type === "meeting"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-green-100 text-green-800"
+                        item.type === "meeting" ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"
                       }`}
                     >
                       {item.type}
@@ -308,8 +268,8 @@ const DashboardHome = () => {
         </AnimatedSection>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Sample data
 const recentPatients = [
@@ -343,7 +303,7 @@ const recentPatients = [
     riskLevel: "Medium",
     lastUpdated: "3 hours ago",
   },
-];
+]
 
 const departments = [
   { name: "Emergency", cases: 42, percentage: 75, trend: "up", change: 12 },
@@ -356,7 +316,7 @@ const departments = [
     change: 5,
   },
   { name: "Pediatrics", cases: 7, percentage: 12, trend: "down", change: 10 },
-];
+]
 
 const schedule = [
   { title: "Department Meeting", time: "09:00 AM - 10:30 AM", type: "meeting" },
@@ -367,33 +327,34 @@ const schedule = [
     type: "meeting",
   },
   { title: "Evening Rounds", time: "04:30 PM - 06:00 PM", type: "rounds" },
-];
+]
 
 // Helper functions
 const getRiskColor = (risk: string) => {
   switch (risk) {
     case "High":
-      return "bg-red-500";
+      return "bg-red-500"
     case "Medium":
-      return "bg-yellow-500";
+      return "bg-yellow-500"
     case "Low":
-      return "bg-green-500";
+      return "bg-green-500"
     default:
-      return "bg-gray-500";
+      return "bg-gray-500"
   }
-};
+}
 
 const getRiskTextColor = (risk: string) => {
   switch (risk) {
     case "High":
-      return "text-red-500";
+      return "text-red-500"
     case "Medium":
-      return "text-yellow-500";
+      return "text-yellow-500"
     case "Low":
-      return "text-green-500";
+      return "text-green-500"
     default:
-      return "text-gray-500";
+      return "text-gray-500"
   }
-};
+}
 
-export default DashboardHome;
+export default DashboardHome
+

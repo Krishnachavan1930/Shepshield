@@ -669,9 +669,9 @@ const Monitoring = () => {
                 </div>
               </Alert>
               {/* Add more alerts as needed */}
-              <Button variant="outline" className="w-full justify-between">
+              {/* <Button variant="outline" className="w-full justify-between">
                 View all alerts <ChevronDown className="h-4 w-4 ml-2" />
-              </Button>
+              </Button> */} 
             </div>
           </CardContent>
         </Card>

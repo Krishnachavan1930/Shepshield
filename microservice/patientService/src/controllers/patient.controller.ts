@@ -206,20 +206,16 @@ export const updatePatient = async (
   }
 };
 
-export const deletePatient = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const patient = await Patient.findByPk(req.params.id);
-    if (!patient) {
-      res.status(404).json({
-        success: false,
-        message: "Patient not found",
-      });
-    }
-    await patient!.destroy();
+export const deletePatient = async(req : Request, res : Response, next : NextFunction)=>{
+    try{
+        const patient = await Patient.findByPk(req.params.id);
+        if(!patient){
+            res.status(404).json({
+                success : false,
+                message : "Patient not found"
+            });
+        }
+        await patient!.destroy();
 
     res.status(200).json({
       success: true,

@@ -4,6 +4,8 @@ import sequelize from "../config/db";
 class User extends Model{
   public id!: number;
   public password! : string;
+  public role! : "doctor" | "nurse" | "admin";
+  public email! : string;
 }
 
 User.init({

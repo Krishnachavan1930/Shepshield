@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+
 import {
   Activity,
   BarChart3,
@@ -322,13 +323,29 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               <Search className="h-5 w-5" />
             </Button>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-muted-foreground"
-            >
-              <Bell className="h-5 w-5" />
-            </Button>
+            <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground"
+          onClick={fetchNotifications}
+        >
+          <Bell className="h-5 w-5" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-2">
+        {notifications.length > 0 ? (
+          notifications.map((notif, index) => (
+            <div key={index} className="p-2 border-b">
+              {notif.message}
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-500 text-sm">No new notifications</p>
+        )}
+      </PopoverContent>
+    </Popover>
 
             {/* <Button variant="ghost" size="icon" className="text-muted-foreground hidden sm:flex">
               <MessageSquare className="h-5 w-5" />

@@ -8,7 +8,7 @@ import { addLabResult, getPatientLab } from "../controllers/lab.controller";
 const router = express.Router();
 const upload = multer({ dest: "uploads/" }); // Temporary file storage
 
-// router.use(protect);
+router.use(protect);
 
 router.route('/')
     .get(getAllPatients)

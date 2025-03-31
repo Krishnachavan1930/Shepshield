@@ -32,6 +32,7 @@ export const protect = async(req : Request, res : Response, next : NextFunction)
         }
 
         req.user = currentUser;
+        console.log(req.user);
         next();
     }catch(err){
         res.status(500).json({

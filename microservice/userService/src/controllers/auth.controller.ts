@@ -3,14 +3,14 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { Request, Response, NextFunction } from "express";
 import { JWT_SECRET } from "../config/config";
-const signToken = (id:string) =>{
-    return jwt.sign({id}, JWT_SECRET, {
+const signToken = (id:string, email : string, role : string) =>{
+    return jwt.sign({id, role:role , email : email}, JWT_SECRET, {
         expiresIn : '30d'
     });
 };
 
 const createSendToken = (user: User, statusCode: number, res: Response): void => {
-    const token = signToken(user.getDataValue("id")); 
+    const token = signToken(user.getDataValue("id"), user.getDataValue("email"), user.getDataValue("role")); 
 
     user.setDataValue("password_hash", undefined); 
     console.log(token);

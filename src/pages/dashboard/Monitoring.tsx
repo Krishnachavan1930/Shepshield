@@ -181,7 +181,9 @@ const Monitoring = () => {
       setIsLoading(true); // Show loading while fetching details
       try {
         // Fetch basic patient info
-        const patientResponse = await patientService.getPatientById(selectedPatient);
+        const patientResponse = await patientService.getPatientById(
+          selectedPatient
+        );
         const basicPatient = patientResponse.data.data;
 
         // Fetch vitals history (assuming separate endpoint or included in getPatientById)
@@ -189,17 +191,24 @@ const Monitoring = () => {
         const vitalsData = vitalsResponse.data.data;
         console.log("Vital Data", vitalsData)
         // Fetch progress data
-        const progressResponse = await patientService.getPatientProgress(selectedPatient);
+        const progressResponse = await patientService.getPatientProgress(
+          selectedPatient
+        );
         const progress = progressResponse.data.data;
 
         // Fetch labs (assuming latest lab result is needed)
-        const labsResponse = await patientService.getPatientLab(selectedPatient); // Adjust endpoint
+        const labsResponse = await patientService.getPatientLab(
+          selectedPatient
+        ); // Adjust endpoint
         const latestLab = labsResponse.data.data;
         console.log("Lab Data", latestLab);
         // Merge data into patientDetails
         const detailedPatient: Patient = {
           ...basicPatient,
-          vitals: vitalsData.length > 0 ? vitalsData[vitalsData.length - 1] : undefined, // Latest vital
+          vitals:
+            vitalsData.length > 0
+              ? vitalsData[vitalsData.length - 1]
+              : undefined, // Latest vital
           labs: latestLab,
         };
         setPatientDetails(detailedPatient);
@@ -256,30 +265,40 @@ const Monitoring = () => {
     return () => clearInterval(interval);
   }, [isRealTime]);
 
-  const filteredPatients = patients.filter((patient) =>
-    patient.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    (filterDepartment === "all" || patient.department === filterDepartment)
+  const filteredPatients = patients.filter(
+    (patient) =>
+      patient.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (filterDepartment === "all" || patient.department === filterDepartment)
   );
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "Critical":
         return (
-          <Badge variant="destructive" className="font-medium flex items-center gap-1">
+          <Badge
+            variant="destructive"
+            className="font-medium flex items-center gap-1"
+          >
             <AlertCircle className="h-3 w-3" /> {status}
           </Badge>
         );
       case "Active":
         return (
-          <Badge variant="warning" className="bg-yellow-500 text-white font-medium flex items-center gap-1">
+          <Badge
+            variant="warning"
+            className="bg-yellow-500 text-white font-medium flex items-center gap-1"
+          >
             <ShieldAlert className="h-3 w-3" /> {status}
           </Badge>
         );
       case "Discharged":
         return (
-          <Badge variant="outline" className="bg-green-100 text-green-800 font-medium flex items-center gap-1">
+          <Badge
+            variant="outline"
+            className="bg-green-100 text-green-800 font-medium flex items-center gap-1"
+          >
             <Gauge className="h-3 w-3" /> {status}
-            </Badge>
+          </Badge>
         );
       default:
         return <Badge variant="secondary">{status}</Badge>;
@@ -295,19 +314,28 @@ const Monitoring = () => {
       );
     } else if (score >= 60) {
       return (
-        <Badge variant="warning" className="bg-yellow-500 text-white flex items-center gap-1">
+        <Badge
+          variant="warning"
+          className="bg-yellow-500 text-white flex items-center gap-1"
+        >
           <TrendingUp className="h-3 w-3" /> {score}%
         </Badge>
       );
     } else if (score >= 40) {
       return (
-        <Badge variant="secondary" className="bg-orange-400 text-white flex items-center gap-1">
+        <Badge
+          variant="secondary"
+          className="bg-orange-400 text-white flex items-center gap-1"
+        >
           {score}%
         </Badge>
       );
     } else {
       return (
-        <Badge variant="outline" className="bg-green-100 text-green-800 flex items-center gap-1">
+        <Badge
+          variant="outline"
+          className="bg-green-100 text-green-800 flex items-center gap-1"
+        >
           {score}%
         </Badge>
       );
@@ -340,12 +368,18 @@ const Monitoring = () => {
 
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
-      doc.text(`Generated: ${new Date().toLocaleString()}`, 105, 25, { align: "center" });
-      doc.text(`Hospital: Shepshield Medical Center`, 105, 30, { align: "center" });
+      doc.text(`Generated: ${new Date().toLocaleString()}`, 105, 25, {
+        align: "center",
+      });
+      doc.text(`Hospital: Shepshield Medical Center`, 105, 30, {
+        align: "center",
+      });
 
       autoTable(doc, {
         startY: 50,
-        head: [["ID", "Name", "Age/Gender", "Department", "Status", "Risk Score"]],
+        head: [
+          ["ID", "Name", "Age/Gender", "Department", "Status", "Risk Score"],
+        ],
         body: [
           [
             patient.id,
@@ -357,7 +391,11 @@ const Monitoring = () => {
           ],
         ],
         styles: { cellPadding: 3, fontSize: 10, valign: "middle" },
-        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+        headStyles: {
+          fillColor: [41, 128, 185],
+          textColor: 255,
+          fontStyle: "bold",
+        },
         columnStyles: {
           0: { cellWidth: 15 },
           1: { cellWidth: 30 },
@@ -371,38 +409,41 @@ const Monitoring = () => {
       autoTable(doc, {
         startY: 85,
         head: [["Parameter", "Value", "Status"]],
-        body: patient.vitals && patient.labs ? [
-          [
-            "Temperature",
-            `${patient.vitals.Temp}°C`,
-            patient.vitals.Temp > 38 ? "Elevated" : "Normal",
-          ],
-          [
-            "Heart Rate",
-            `${patient.vitals.HR} bpm`,
-            patient.vitals.HR > 100 ? "Tachycardia" : "Normal",
-          ],
-          [
-            "Resp. Rate",
-            `${patient.vitals.Resp} /min`,
-            patient.vitals.Resp > 20 ? "Tachypnea" : "Normal",
-          ],
-          [
-            "Blood Pressure",
-            `${patient.vitals.SBP}/${patient.vitals.DBP}`,
-            patient.vitals.SBP < 90 ? "Hypotension" : "Normal",
-          ],
-          [
-            "Oxygen Sat",
-            `${patient.vitals.O2Sat}%`,
-            patient.vitals.O2Sat < 92 ? "Hypoxic" : "Normal",
-          ],
-          [
-            "Lactate",
-            `${patient.labs.Lactate.toFixed(1)} mmol/L`,
-            patient.labs.Lactate > 2 ? "Elevated" : "Normal",
-          ],
-        ] : [],
+        body:
+          patient.vitals && patient.labs
+            ? [
+                [
+                  "Temperature",
+                  `${patient.vitals.Temp}°C`,
+                  patient.vitals.Temp > 38 ? "Elevated" : "Normal",
+                ],
+                [
+                  "Heart Rate",
+                  `${patient.vitals.HR} bpm`,
+                  patient.vitals.HR > 100 ? "Tachycardia" : "Normal",
+                ],
+                [
+                  "Resp. Rate",
+                  `${patient.vitals.Resp} /min`,
+                  patient.vitals.Resp > 20 ? "Tachypnea" : "Normal",
+                ],
+                [
+                  "Blood Pressure",
+                  `${patient.vitals.SBP}/${patient.vitals.DBP}`,
+                  patient.vitals.SBP < 90 ? "Hypotension" : "Normal",
+                ],
+                [
+                  "Oxygen Sat",
+                  `${patient.vitals.O2Sat}%`,
+                  patient.vitals.O2Sat < 92 ? "Hypoxic" : "Normal",
+                ],
+                [
+                  "Lactate",
+                  `${patient.labs.Lactate.toFixed(1)} mmol/L`,
+                  patient.labs.Lactate > 2 ? "Elevated" : "Normal",
+                ],
+              ]
+            : [],
         columnStyles: {
           0: { cellWidth: 40 },
           1: { cellWidth: 30 },
@@ -410,7 +451,9 @@ const Monitoring = () => {
         },
       });
 
-      const fileName = `Sepsis_Report_${patient.name.replace(" ", "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
+      const fileName = `Sepsis_Report_${patient.name.replace(" ", "_")}_${
+        new Date().toISOString().split("T")[0]
+      }.pdf`;
       doc.save(fileName);
 
       toast.success("Report Generated", {
@@ -442,7 +485,9 @@ const Monitoring = () => {
 
   const toggleRealTime = () => {
     setIsRealTime(!isRealTime);
-    toast.info(isRealTime ? "Real-time updates disabled" : "Real-time updates enabled");
+    toast.info(
+      isRealTime ? "Real-time updates disabled" : "Real-time updates enabled"
+    );
   };
 
   if (isLoading) {
@@ -488,7 +533,8 @@ const Monitoring = () => {
             <CardContent>
               <div className="text-2xl font-bold">{patients.length}</div>
               <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <Clock className="h-3 w-3" /> Updated {lastUpdated.toLocaleTimeString()}
+                <Clock className="h-3 w-3" /> Updated{" "}
+                {lastUpdated.toLocaleTimeString()}
               </p>
             </CardContent>
           </Card>
@@ -504,9 +550,11 @@ const Monitoring = () => {
               </div>
               <p className="text-xs text-muted-foreground">
                 {Math.round(
-                  (patients.filter((p) => p.status === "Critical").length / patients.length) * 100
-                ) || 0}%
-                of total
+                  (patients.filter((p) => p.status === "Critical").length /
+                    patients.length) *
+                    100
+                ) || 0}
+                % of total
               </p>
             </CardContent>
           </Card>
@@ -568,7 +616,10 @@ const Monitoring = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <Select value={filterDepartment} onValueChange={setFilterDepartment}>
+                <Select
+                  value={filterDepartment}
+                  onValueChange={setFilterDepartment}
+                >
                   <SelectTrigger className="w-full sm:w-40">
                     <SelectValue placeholder="Department" />
                   </SelectTrigger>
@@ -581,7 +632,9 @@ const Monitoring = () => {
                 </Select>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground whitespace-nowrap">Sort by:</span>
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  Sort by:
+                </span>
                 <Select defaultValue="risk">
                   <SelectTrigger className="w-full sm:w-32">
                     <SelectValue />
@@ -598,10 +651,18 @@ const Monitoring = () => {
             <div className="border rounded-md">
               <div className="grid grid-cols-12 gap-2 p-3 bg-muted/50 text-sm font-medium border-b">
                 <div className="col-span-5 sm:col-span-4">Patient</div>
-                <div className="col-span-3 sm:col-span-2 text-center">Status</div>
-                <div className="col-span-4 sm:col-span-2 text-center">Risk Score</div>
-                <div className="hidden sm:block sm:col-span-2 text-center">Department</div>
-                <div className="hidden sm:block sm:col-span-2 text-center">Last Updated</div>
+                <div className="col-span-3 sm:col-span-2 text-center">
+                  Status
+                </div>
+                <div className="col-span-4 sm:col-span-2 text-center">
+                  Risk Score
+                </div>
+                <div className="hidden sm:block sm:col-span-2 text-center">
+                  Department
+                </div>
+                <div className="hidden sm:block sm:col-span-2 text-center">
+                  Last Updated
+                </div>
               </div>
 
               <div className="divide-y max-h-80 overflow-auto">
@@ -641,7 +702,9 @@ const Monitoring = () => {
             </div>
 
             <div className="mt-2 text-xs text-muted-foreground text-right flex justify-between items-center">
-              <span>Showing {filteredPatients.length} of {patients.length} patients</span>
+              <span>
+                Showing {filteredPatients.length} of {patients.length} patients
+              </span>
               <span className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
                 Last updated: {lastUpdated.toLocaleTimeString()}
@@ -658,11 +721,17 @@ const Monitoring = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <Alert variant="destructive" className="border-destructive/30 bg-destructive/10">
+              <Alert
+                variant="destructive"
+                className="border-destructive/30 bg-destructive/10"
+              >
                 <Bell className="h-4 w-4" />
-                <AlertTitle className="font-medium text-destructive">Critical Alert</AlertTitle>
+                <AlertTitle className="font-medium text-destructive">
+                  Critical Alert
+                </AlertTitle>
                 <AlertDescription className="text-destructive/90">
-                  Jessica Martinez showing signs of severe sepsis. Immediate attention required.
+                  Jessica Martinez showing signs of severe sepsis. Immediate
+                  attention required.
                 </AlertDescription>
                 <div className="mt-2 text-xs text-destructive/70 flex items-center gap-2">
                   <Clock className="h-3 w-3" /> 5 minutes ago
@@ -671,7 +740,7 @@ const Monitoring = () => {
               {/* Add more alerts as needed */}
               {/* <Button variant="outline" className="w-full justify-between">
                 View all alerts <ChevronDown className="h-4 w-4 ml-2" />
-              </Button> */} 
+              </Button> */}
             </div>
           </CardContent>
         </Card>
@@ -690,7 +759,9 @@ const Monitoring = () => {
                   </Badge>
                 </CardTitle>
                 <CardDescription className="flex items-center gap-4 mt-1">
-                  <span>Age: {patientDetails.age} | Gender: {patientDetails.gender}</span>
+                  <span>
+                    Age: {patientDetails.age} | Gender: {patientDetails.gender}
+                  </span>
                   <span>Admitted: {patientDetails.admissionDate}</span>
                 </CardDescription>
               </div>
@@ -698,7 +769,11 @@ const Monitoring = () => {
                 <Button size="sm" variant="outline" className="gap-1">
                   <ClipboardList className="h-4 w-4" /> Records
                 </Button>
-                <Button size="sm" onClick={() => generateFullReport(patientDetails)} className="gap-1">
+                <Button
+                  size="sm"
+                  onClick={() => generateFullReport(patientDetails)}
+                  className="gap-1"
+                >
                   <Download className="h-4 w-4" /> Full Report
                 </Button>
               </div>
@@ -710,13 +785,19 @@ const Monitoring = () => {
                 <TabsTrigger value="vitals" className="flex items-center gap-1">
                   <Thermometer className="h-4 w-4" /> Vitals
                 </TabsTrigger>
-                <TabsTrigger value="progress" className="flex items-center gap-1">
+                <TabsTrigger
+                  value="progress"
+                  className="flex items-center gap-1"
+                >
                   <TrendingUp className="h-4 w-4" /> Progression
                 </TabsTrigger>
                 <TabsTrigger value="labs" className="flex items-center gap-1">
                   <Droplets className="h-4 w-4" /> Labs
                 </TabsTrigger>
-                <TabsTrigger value="treatment" className="flex items-center gap-1">
+                <TabsTrigger
+                  value="treatment"
+                  className="flex items-center gap-1"
+                >
                   <Syringe className="h-4 w-4" /> Treatment
                 </TabsTrigger>
               </TabsList>
@@ -736,10 +817,14 @@ const Monitoring = () => {
                         </div>
                         <p
                           className={`text-xs ${
-                            patientDetails.vitals.Temp > 38 ? "text-destructive" : "text-muted-foreground"
+                            patientDetails.vitals.Temp > 38
+                              ? "text-destructive"
+                              : "text-muted-foreground"
                           }`}
                         >
-                          {patientDetails.vitals.Temp > 38 ? "Elevated" : "Normal range"}
+                          {patientDetails.vitals.Temp > 38
+                            ? "Elevated"
+                            : "Normal range"}
                         </p>
                       </CardContent>
                     </Card>
@@ -755,10 +840,14 @@ const Monitoring = () => {
                         </div>
                         <p
                           className={`text-xs ${
-                            patientDetails.vitals.HR > 100 ? "text-destructive" : "text-muted-foreground"
+                            patientDetails.vitals.HR > 100
+                              ? "text-destructive"
+                              : "text-muted-foreground"
                           }`}
                         >
-                          {patientDetails.vitals.HR > 100 ? "Tachycardia" : "Normal range"}
+                          {patientDetails.vitals.HR > 100
+                            ? "Tachycardia"
+                            : "Normal range"}
                         </p>
                       </CardContent>
                     </Card>
@@ -774,10 +863,14 @@ const Monitoring = () => {
                         </div>
                         <p
                           className={`text-xs ${
-                            patientDetails.vitals.Resp > 20 ? "text-destructive" : "text-muted-foreground"
+                            patientDetails.vitals.Resp > 20
+                              ? "text-destructive"
+                              : "text-muted-foreground"
                           }`}
                         >
-                          {patientDetails.vitals.Resp > 20 ? "Tachypnea" : "Normal range"}
+                          {patientDetails.vitals.Resp > 20
+                            ? "Tachypnea"
+                            : "Normal range"}
                         </p>
                       </CardContent>
                     </Card>
@@ -789,14 +882,19 @@ const Monitoring = () => {
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold">
-                          {patientDetails.vitals.SBP}/{patientDetails.vitals.DBP} mmHg
+                          {patientDetails.vitals.SBP}/
+                          {patientDetails.vitals.DBP} mmHg
                         </div>
                         <p
                           className={`text-xs ${
-                            patientDetails.vitals.SBP < 90 ? "text-destructive" : "text-muted-foreground"
+                            patientDetails.vitals.SBP < 90
+                              ? "text-destructive"
+                              : "text-muted-foreground"
                           }`}
                         >
-                          {patientDetails.vitals.SBP < 90 ? "Hypotension" : "Normal range"}
+                          {patientDetails.vitals.SBP < 90
+                            ? "Hypotension"
+                            : "Normal range"}
                         </p>
                       </CardContent>
                     </Card>
@@ -820,8 +918,16 @@ const Monitoring = () => {
                         >
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="time" />
-                          <YAxis yAxisId="left" orientation="left" stroke="#ef4444" />
-                          <YAxis yAxisId="right" orientation="right" stroke="#3b82f6" />
+                          <YAxis
+                            yAxisId="left"
+                            orientation="left"
+                            stroke="#ef4444"
+                          />
+                          <YAxis
+                            yAxisId="right"
+                            orientation="right"
+                            stroke="#3b82f6"
+                          />
                           <Tooltip />
                           <Legend />
                           <Area
@@ -905,15 +1011,28 @@ const Monitoring = () => {
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart
                             data={progressData}
-                            margin={{ top: 0.5, right: 30, left: 20, bottom: 5 }}
+                            margin={{
+                              top: 0.5,
+                              right: 30,
+                              left: 20,
+                              bottom: 5,
+                            }}
                           >
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="date" />
                             <YAxis />
                             <Tooltip />
                             <Legend />
-                            <Bar dataKey="sofa" fill="#6366f1" name="SOFA Score" />
-                            <Bar dataKey="qsofa" fill="#0ea5e9" name="qSOFA Score" />
+                            <Bar
+                              dataKey="sofa"
+                              fill="#6366f1"
+                              name="SOFA Score"
+                            />
+                            <Bar
+                              dataKey="qsofa"
+                              fill="#0ea5e9"
+                              name="qSOFA Score"
+                            />
                           </BarChart>
                         </ResponsiveContainer>
                       </div>
@@ -936,27 +1055,41 @@ const Monitoring = () => {
                         <div className="space-y-4">
                           <div className="flex justify-between pb-2 border-b">
                             <span className="font-medium">WBC Count</span>
-                            <span className="font-bold">{patientDetails.labs.WBC} x10³/μL</span>
+                            <span className="font-bold">
+                              {patientDetails.labs.WBC} x10³/μL
+                            </span>
                           </div>
                           <div className="flex justify-between pb-2 border-b">
                             <span className="font-medium">Glucose</span>
-                            <span className="font-bold">{patientDetails.labs.Glucose} mg/L</span>
+                            <span className="font-bold">
+                              {patientDetails.labs.Glucose} mg/L
+                            </span>
                           </div>
                           <div className="flex justify-between pb-2 border-b">
                             <span className="font-medium">Creatinine</span>
-                            <span className="font-bold">{patientDetails.labs.Creatinine} mg/dL</span>
+                            <span className="font-bold">
+                              {patientDetails.labs.Creatinine} mg/dL
+                            </span>
                           </div>
                           <div className="flex justify-between pb-2 border-b">
                             <span className="font-medium">Bilirubin Total</span>
-                            <span className="font-bold">{patientDetails.labs.Bilirubin_total} mg/dL</span>
+                            <span className="font-bold">
+                              {patientDetails.labs.Bilirubin_total} mg/dL
+                            </span>
                           </div>
                           <div className="flex justify-between pb-2 border-b">
-                            <span className="font-medium">Bilirubin Direct</span>
-                            <span className="font-bold">{patientDetails.labs.Bilirubin_direct} mg/dL</span>
+                            <span className="font-medium">
+                              Bilirubin Direct
+                            </span>
+                            <span className="font-bold">
+                              {patientDetails.labs.Bilirubin_direct} mg/dL
+                            </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="font-medium">Platelets</span>
-                            <span className="font-bold">{patientDetails.labs.Platelets} x10³/μL</span>
+                            <span className="font-bold">
+                              {patientDetails.labs.Platelets} x10³/μL
+                            </span>
                           </div>
                         </div>
                       </CardContent>
@@ -975,19 +1108,59 @@ const Monitoring = () => {
                               cy="50%"
                               outerRadius="80%"
                               data={[
-                                { subject: "WBC", A: 11, B: patientDetails.labs.WBC, fullMark: 25 },
-                                { subject: "Glucose", A: 10, B: patientDetails.labs.Glucose, fullMark: 100 },
-                                { subject: "Creat", A: 1.2, B: patientDetails.labs.Creatinine, fullMark: 3 },
-                                { subject: "Bili", A: 1.2, B: patientDetails.labs.Bilirubin_total, fullMark: 3 },
-                                { subject: "Plt", A: 150, B: patientDetails.labs.Platelets, fullMark: 450 },
+                                {
+                                  subject: "WBC",
+                                  A: 11,
+                                  B: patientDetails.labs.WBC,
+                                  fullMark: 25,
+                                },
+                                {
+                                  subject: "Glucose",
+                                  A: 10,
+                                  B: patientDetails.labs.Glucose,
+                                  fullMark: 100,
+                                },
+                                {
+                                  subject: "Creat",
+                                  A: 1.2,
+                                  B: patientDetails.labs.Creatinine,
+                                  fullMark: 3,
+                                },
+                                {
+                                  subject: "Bili",
+                                  A: 1.2,
+                                  B: patientDetails.labs.Bilirubin_total,
+                                  fullMark: 3,
+                                },
+                                {
+                                  subject: "Plt",
+                                  A: 150,
+                                  B: patientDetails.labs.Platelets,
+                                  fullMark: 450,
+                                },
                               ]}
                             >
                               <PolarGrid />
                               <PolarAngleAxis dataKey="subject" />
-                              <PolarRadiusAxis angle={30} domain={[0, "dataMax + 10"]} />
+                              <PolarRadiusAxis
+                                angle={30}
+                                domain={[0, "dataMax + 10"]}
+                              />
                               <Tooltip />
-                              <Radar name="Normal" dataKey="A" stroke="#8884d8" fill="#8884d8" fillOpacity={0.2} />
-                              <Radar name="Patient" dataKey="B" stroke="#ff7300" fill="#ff7300" fillOpacity={0.3} />
+                              <Radar
+                                name="Normal"
+                                dataKey="A"
+                                stroke="#8884d8"
+                                fill="#8884d8"
+                                fillOpacity={0.2}
+                              />
+                              <Radar
+                                name="Patient"
+                                dataKey="B"
+                                stroke="#ff7300"
+                                fill="#ff7300"
+                                fillOpacity={0.3}
+                              />
                               <Legend />
                             </RadarChart>
                           </ResponsiveContainer>
@@ -1011,19 +1184,29 @@ const Monitoring = () => {
                     <div className="space-y-4">
                       <div>
                         <h3 className="font-medium flex items-center gap-2">
-                          <CalendarClock className="h-4 w-4" /> 1. Hour 1 (Sepsis Bundle)
+                          <CalendarClock className="h-4 w-4" /> 1. Hour 1
+                          (Sepsis Bundle)
                         </h3>
                         <ul className="list-disc pl-5 mt-2 text-sm space-y-1">
                           <li>
                             Measure lactate level (current:{" "}
                             {patientDetails.labs?.Lactate ?? "N/A"} mmol/L)
                           </li>
-                          <li>Obtain blood cultures before administering antibiotics</li>
-                          <li>Administer broad-spectrum antibiotics within 1 hour</li>
                           <li>
-                            Begin rapid administration of crystalloid (30 ml/kg) for hypotension or lactate ≥4 mmol/L
+                            Obtain blood cultures before administering
+                            antibiotics
                           </li>
-                          <li>Apply vasopressors for hypotension during/after fluid resuscitation</li>
+                          <li>
+                            Administer broad-spectrum antibiotics within 1 hour
+                          </li>
+                          <li>
+                            Begin rapid administration of crystalloid (30 ml/kg)
+                            for hypotension or lactate ≥4 mmol/L
+                          </li>
+                          <li>
+                            Apply vasopressors for hypotension during/after
+                            fluid resuscitation
+                          </li>
                         </ul>
                       </div>
                       {/* Add more treatment sections as needed */}

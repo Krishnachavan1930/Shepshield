@@ -1,11 +1,12 @@
 import express from "express";
+import multer from "multer";
 import { protect, restrictIo } from "../middlewares/auth.middleware";
-import { createPatient, deletePatient, getAllPatients, getPatient, getPatientProgress, updatePatient } from "../controllers/patient.controller";
+import { createPatient, deletePatient, getAllPatients, getPatient, getPatientProgress, updatePatient, uploadCSV } from "../controllers/patient.controller";
 import { addVitalSigns, getPatientVitals } from "../controllers/vitals.controller";
 import { addLabResult, getPatientLab } from "../controllers/lab.controller";
 
 const router = express.Router();
-
+const upload = multer({ dest: "uploads/" }); // Temporary file storage
 
 // router.use(protect);
 
@@ -29,5 +30,7 @@ router.route('/:id/labs')
     .post(addLabResult);
 
 router.get('/:id/progress', getPatientProgress);
+
+router.post('/uploadcsv',upload.single("file"), uploadCSV)
 
 export default router;

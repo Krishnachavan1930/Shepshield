@@ -11,14 +11,27 @@ import { useNavigate } from "react-router-dom"
 const DashboardHome = () => {
   const navigate = useNavigate()
   const [averageRiskScore, setAverageRiskScore] = useState(0)
+  const [dashboardData, setDashboardData] = useState<{
+    activePatients: number;
+    activePatientsChange: number;
+    sepsisAlerts: number;
+    sepsisAlertsChange: number;
+    reportsProcessed: number;
+    reportsProcessedChange: number;
+    predictedOutcomes: number;
+    averageRiskScore: number;
+    departmentCounts: Record<string, number>;
+  } | null>(null);
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchRiskScore = async () => {
       try {
-        const response = await fetch("https://your-backend-api.com/risk-score/average")
-        const data = await response.json()
-        setAverageRiskScore(data.averageRiskScore)
+        const response = await fetch("http://localhost:5454/patients/api/dashboard/")
+        const data = await response.json();
+        setDashboardData(data);
+        console.log(data);
+        setAverageRiskScore(parseFloat(data.averageRiskScore))
       } catch (error) {
         console.error("Error fetching average risk score:", error)
         // Set a default value in case of error
@@ -51,8 +64,8 @@ const DashboardHome = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">128</div>
-              <p className="text-xs text-muted-foreground">+12% from last month</p>
+              <div className="text-2xl font-bold">{dashboardData ? dashboardData.activePatients : 0}</div>
+              <p className="text-xs text-muted-foreground">{dashboardData ? dashboardData.activePatientsChange : 0} from today</p>
               <Progress className="mt-2" value={72} />
             </CardContent>
           </Card>
@@ -65,8 +78,8 @@ const DashboardHome = () => {
               <AlertCircle className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">7</div>
-              <p className="text-xs text-destructive">+3 new alerts today</p>
+              <div className="text-2xl font-bold">{dashboardData ? dashboardData.sepsisAlerts : 0}</div>
+              <p className="text-xs text-destructive">{dashboardData ? dashboardData.sepsisAlertsChange : 0} new alerts today</p>
               <Progress className="mt-2" value={28} />
             </CardContent>
           </Card>
@@ -93,8 +106,8 @@ const DashboardHome = () => {
               <Lightbulb className="h-4 w-4 text-yellow-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">93%</div>
-              <p className="text-xs text-muted-foreground">Accuracy rate</p>
+              <div className="text-2xl font-bold">{dashboardData ? dashboardData.predictedOutcomes : 0}</div>
+              <p className="text-xs text-muted-foreground">Number of outcomes predicted</p>
               <Progress className="mt-2" value={93} />
             </CardContent>
           </Card>

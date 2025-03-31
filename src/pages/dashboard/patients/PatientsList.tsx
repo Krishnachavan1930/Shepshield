@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { patientService } from '@/services/api';
 
 interface Patient {
   id: string;
@@ -32,19 +33,21 @@ const PatientsList = () => {
     department: 'all'
   });
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
+  useEffect(()=>{
+    const fetchPatients = async()=>{
+      try{
+        const response = await patientService.getAllPatients();
+        console.log(response);
 
-  const [patients] = useState<Patient[]>([
-    { id: 'P-1001', name: 'Emily Johnson', age: 65, gender: 'F', riskLevel: 'High', department: 'Cardiology', lastUpdated: '10 mins ago', status: 'Active' },
-    { id: 'P-1002', name: 'Robert Smith', age: 58, gender: 'M', riskLevel: 'Medium', department: 'Neurology', lastUpdated: '25 mins ago', status: 'Critical' },
-    { id: 'P-1003', name: 'Maria Garcia', age: 42, gender: 'F', riskLevel: 'Low', department: 'General Medicine', lastUpdated: '1 hour ago', status: 'Active' },
-    { id: 'P-1004', name: 'James Wilson', age: 72, gender: 'M', riskLevel: 'High', department: 'Emergency', lastUpdated: '2 hours ago', status: 'Active' },
-    { id: 'P-1005', name: 'Linda Chen', age: 49, gender: 'F', riskLevel: 'Medium', department: 'Oncology', lastUpdated: '3 hours ago', status: 'Active' },
-    { id: 'P-1006', name: 'Michael Brown', age: 62, gender: 'M', riskLevel: 'Low', department: 'Orthopedics', lastUpdated: '4 hours ago', status: 'Discharged' },
-    { id: 'P-1007', name: 'Sarah Davis', age: 35, gender: 'F', riskLevel: 'Low', department: 'Pediatrics', lastUpdated: '5 hours ago', status: 'Discharged' },
-    { id: 'P-1008', name: 'Thomas Martinez', age: 68, gender: 'M', riskLevel: 'High', department: 'ICU', lastUpdated: '6 hours ago', status: 'Critical' },
-    { id: 'P-1009', name: 'Jessica Lewis', age: 51, gender: 'F', riskLevel: 'Medium', department: 'Cardiology', lastUpdated: '7 hours ago', status: 'Active' },
-    { id: 'P-1010', name: 'David Lee', age: 44, gender: 'M', riskLevel: 'Low', department: 'General Medicine', lastUpdated: '8 hours ago', status: 'Discharged' },
-  ]);
+        setPatients(response.data.data);
+      }catch(err){
+        console.error("Error fetching patient, error");
+        toast.error("Failed to load patients");
+      }
+    };
+    fetchPatients();
+  }, []);
+  const [patients, setPatients] = useState<Patient[]>([]);
 
   const filteredPatients = patients.filter(patient => {
     const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) || 

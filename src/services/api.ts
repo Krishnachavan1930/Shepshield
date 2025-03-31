@@ -63,19 +63,19 @@ export const patientService = {
 
 export const analyticsService = {
   getAnalytics: async () => {
-    return api.get('/analytics');
+    return api.get('/patients/api/analytics');
   },
   getMonthlyData: async () => {
-    return api.get('/analytics/monthly');
+    return api.get('/patients/api/analytics/monthly');
   },
   getDepartmentData: async () => {
-    return api.get('/analytics/departments');
+    return api.get('/patients/api/analytics/departments');
   },
   getDetectionRate: async () => {
-    return api.get('/analytics/detection-rate');
+    return api.get('/patients/api/analytics/detection-rate');
   },
   getPatientOutcomes: async () => {
-    return api.get('/analytics/outcomes');
+    return api.get('/patients/api/analytics/outcomes');
   },
 };
 

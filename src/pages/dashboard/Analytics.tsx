@@ -22,6 +22,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format, subDays } from 'date-fns';
 import { CalendarIcon, RefreshCw, AlertTriangle, Stethoscope, Activity, HeartPulse } from 'lucide-react';
+import { analyticsService } from '@/services/api';
 
 // Types
 type PatientMetrics = {
@@ -62,7 +63,71 @@ export default function Analytics() {
   const [data, setData] = useState<PatientMetrics[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [chartType, setChartType] = useState<'line' | 'bar'>('line');
+  const [generalAnalytics, setGeneralAnalytics] = useState<any>(null);
 
+  // Fetch data from backend
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch general analytics
+        const generalData = await analyticsService.getAnalytics();
+        setGeneralAnalytics(generalData.data.data);
+
+        // Fetch monthly data
+        const monthlyData = await analyticsService.getMonthlyData();
+        console.log(monthlyData);
+        console.log(generalAnalytics);
+        // Transform monthly data to match our PatientMetrics type
+        const transformedData = monthlyData.data.data.map((item: any) => ({
+          date: format(new Date(item.month), 'MMM dd'),
+          patientsTreated: item.cases,
+          positiveOutcomes: Math.floor(item.cases * 0.85), // Approximation
+          sepsisAlerts: Math.floor(item.cases * 0.1), // Approximation
+          avgTreatmentTime: 90, // This would need to come from actual  // Static approximation
+          readmissions: Math.floor(item.cases * 0.05), // Approximation
+        }));
+        console.log(transformedData);
+        setData(transformedData);
+        toast.success('Loaded patient data successfully');
+      } catch (error) {
+        toast.error('Failed to load patient metrics');
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [timeRange, dateRange]);
+
+  const refreshData = async () => {
+    setIsLoading(true);
+    try {
+      const generalData = await analyticsService.getAnalytics();
+      setGeneralAnalytics(generalData);
+      toast.success('Patient data refreshed');
+    } catch (error) {
+      toast.error('Failed to refresh data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Calculate totals from general analytics
+  const totals = generalAnalytics ? {
+    patientsTreated: generalAnalytics.total,
+    positiveOutcomes: generalAnalytics.patientOutcomes.recovered,
+    sepsisAlerts: generalAnalytics.active - generalAnalytics.patientOutcomes.underTreatment, // Approximation
+    avgTreatmentTime: 90, // Static value since not available in backend
+    readmissions: Math.floor(generalAnalytics.total * 0.05), // Approximation
+  } : {
+    patientsTreated: 0,
+    positiveOutcomes: 0,
+    sepsisAlerts: 0,
+    avgTreatmentTime: 0,
+    readmissions: 0
+  };
   // Fetch data based on time range
   useEffect(() => {
     const fetchData = () => {
@@ -91,22 +156,22 @@ export default function Analytics() {
     fetchData();
   }, [timeRange, dateRange]);
 
-  const refreshData = () => {
-    setData(generatePatientData(data.length));
-    toast.success('Patient data refreshed');
-  };
+  // const refreshData = () => {
+  //   setData(generatePatientData(data.length));
+  //   toast.success('Patient data refreshed');
+  // };
 
   // Calculate totals
-  const totals = data.reduce(
-    (acc, curr) => ({
-      patientsTreated: acc.patientsTreated + curr.patientsTreated,
-      positiveOutcomes: acc.positiveOutcomes + curr.positiveOutcomes,
-      sepsisAlerts: acc.sepsisAlerts + curr.sepsisAlerts,
-      avgTreatmentTime: acc.avgTreatmentTime + curr.avgTreatmentTime / data.length,
-      readmissions: acc.readmissions + curr.readmissions,
-    }),
-    { patientsTreated: 0, positiveOutcomes: 0, sepsisAlerts: 0, avgTreatmentTime: 0, readmissions: 0 }
-  );
+  // const totals = data.reduce(
+  //   (acc, curr) => ({
+  //     patientsTreated: acc.patientsTreated + curr.patientsTreated,
+  //     positiveOutcomes: acc.positiveOutcomes + curr.positiveOutcomes,
+  //     sepsisAlerts: acc.sepsisAlerts + curr.sepsisAlerts,
+  //     avgTreatmentTime: acc.avgTreatmentTime + curr.avgTreatmentTime / data.length,
+  //     readmissions: acc.readmissions + curr.readmissions,
+  //   }),
+  //   { patientsTreated: 0, positiveOutcomes: 0, sepsisAlerts: 0, avgTreatmentTime: 0, readmissions: 0 }
+  // );
 
   // Calculate success rate
   const successRate = totals.patientsTreated > 0 

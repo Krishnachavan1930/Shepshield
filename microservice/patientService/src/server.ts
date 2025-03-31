@@ -6,6 +6,7 @@ import morgan from "morgan"
 import PatientRoutes from "./routes/patient.routes";
 import cookieParser from "cookie-parser";
 import AnalyticsRoutes from "./routes/analytics.routes";
+import DashboardRoutes from "./routes/dasboard.routes";
 configDotenv();
 
 const app = express();
@@ -26,6 +27,7 @@ app.use(morgan('dev'));
 app.use(cookieParser());
 app.use('/api/patients', PatientRoutes);
 app.use('/api/analytics', AnalyticsRoutes);
+app.use('/api/dashboard', DashboardRoutes);
 
 
 app.use("/", (req : Request, res : Response)=>{

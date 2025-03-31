@@ -455,6 +455,9 @@ const calculateRiskScore = (vitalSigns: VitalSigns) => {
 // upload CSV file
 
 export const uploadCSV = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+
+    console.log("Received file:", req.file); // Debug log
+
     if (!req.file) {
       res.status(400).json({ error: "No file uploaded" });
       return;
@@ -470,10 +473,7 @@ export const uploadCSV = async (req: Request, res: Response, next: NextFunction)
     }
 };
 
-const processCSV = async (
-  filePath: string,
-  uploadedBy: string
-): Promise<string> => {
+const processCSV = async (filePath: string, uploadedBy: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     const results: any[] = [];
     fs.createReadStream(filePath)
@@ -481,28 +481,40 @@ const processCSV = async (
       .on("data", (data) => results.push(data))
       .on("end", async () => {
         try {
-          if (results.length === 0) return reject("Empty CSV file");
+          console.log("CSV Data Parsed:", results); // Log the parsed data
+
+          if (results.length === 0) {
+            console.error("Error: Empty CSV file");
+            return reject("Empty CSV file");
+          }
 
           const headers = Object.keys(results[0]);
-          if (headers.includes("Patientreport")) {
+          console.log("CSV Headers:", headers); // Debugging
+
+          if (headers.includes("medicalRecordNumber")) {
             await processPatients(results as PatientRecord[], uploadedBy);
-          } else if (headers.includes("VitalSigns") && headers.includes("vitalsigns")) {
+          } else if (headers.includes("Temp") && headers.includes("HR")) {
             await processVitalSigns(results as VitalSignRecord[]);
-          } else if (
-            headers.includes("LabResult") &&
-            headers.includes("labresult")
-          ) {
+          } else if (headers.includes("testType") && headers.includes("Glucose")) {
             await processLabResults(results as LabResultRecord[]);
           } else {
+            console.error("Error: Invalid CSV format");
             return reject("Invalid CSV format");
           }
+
           resolve("CSV processed successfully");
         } catch (err) {
+          console.error("Error processing CSV:", err);
           reject(err);
         }
+      })
+      .on("error", (err) => {
+        console.error("Error reading CSV file:", err);
+        reject(err);
       });
   });
 };
+
 
 const processPatients = async (
   data: PatientRecord[],

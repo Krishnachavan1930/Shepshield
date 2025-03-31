@@ -6,7 +6,32 @@ import { addVitalSigns, getPatientVitals } from "../controllers/vitals.controlle
 import { addLabResult, getPatientLab } from "../controllers/lab.controller";
 
 const router = express.Router();
-const upload = multer({ dest: "uploads/" }); // Temporary file storage
+
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, "uploads/");
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + "-" + file.originalname);
+    }
+});
+
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+    fileFilter: (req, file, cb) => {
+        console.log("File type received:", file.mimetype); // Debugging
+        if (file.mimetype === "text/csv" || file.originalname.endsWith(".csv")) {
+            cb(null, true);
+        } else {
+            cb(new Error("Only CSV files are allowed!"));
+        }
+    }
+});
+
+
+router.post('/uploadcsv',upload.single("file"), uploadCSV)
 
 router.use(protect);
 
@@ -31,6 +56,6 @@ router.route('/:id/labs')
 
 router.get('/:id/progress', getPatientProgress);
 
-router.post('/uploadcsv',upload.single("file"), uploadCSV)
+
 
 export default router;

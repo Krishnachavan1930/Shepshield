@@ -1,78 +1,113 @@
+"use client"
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import { Progress } from '@/components/ui/progress';
-import { CheckCircle, Clock, Download, FileText, Upload, X } from 'lucide-react';
+import type React from "react"
+import { useState } from "react"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
+import { Progress } from "@/components/ui/progress"
+import { CheckCircle, Clock, Download, FileText, Upload, X } from "lucide-react"
 
 const UploadReports = () => {
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
-  const [processingStatus, setProcessingStatus] = useState<'idle' | 'processing' | 'completed' | 'error'>('idle');
-  
-  // Mock file upload function
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    
-    // Start mock upload process
-    setUploading(true);
-    setUploadProgress(0);
-    
+  const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadedFiles, setUploadedFiles] = useState<string[]>([])
+  const [processingStatus, setProcessingStatus] = useState<"idle" | "processing" | "completed" | "error">("idle")
+
+  // Updated file upload function with API call
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    // Start upload process
+    setUploading(true)
+    setUploadProgress(0)
+
     // Simulate upload progress
     const interval = setInterval(() => {
-      setUploadProgress(prev => {
+      setUploadProgress((prev) => {
         if (prev >= 100) {
-          clearInterval(interval);
-          setUploading(false);
-          
+          clearInterval(interval)
+          setUploading(false)
+
           // Add uploaded filenames to state
-          const newFiles = Array.from(files).map(file => file.name);
-          setUploadedFiles(prev => [...prev, ...newFiles]);
-          
-          // Simulate processing
-          setProcessingStatus('processing');
-          setTimeout(() => setProcessingStatus('completed'), 3000);
-          
-          return 100;
+          const newFiles = Array.from(files).map((file) => file.name)
+          setUploadedFiles((prev) => [...prev, ...newFiles])
+
+          return 100
         }
-        return prev + 10;
-      });
-    }, 300);
-  };
-  
+        return prev + 10
+      })
+    }, 300)
+
+    try {
+      // Find CSV file if any
+      const csvFile = Array.from(files).find((file) => file.name.toLowerCase().endsWith(".csv"))
+
+      if (csvFile) {
+        // Create form data for API call
+        const formData = new FormData()
+        formData.append("file", csvFile)
+        formData.append("key", "file") // Key file as mentioned in requirements
+        formData.append("uploadedBy", "ky") // uploadedBy value as mentioned
+
+        // Call the API endpoint
+        const response = await fetch("http://localhost:5001/api/patients/uploadcsv", {
+          method: "POST",
+          body: formData,
+        })
+
+        if (response.ok) {
+          // API call successful
+          setProcessingStatus("completed")
+        } else {
+          // API call failed
+          setProcessingStatus("error")
+          console.error("Failed to upload CSV:", await response.text())
+        }
+      } else {
+        // No CSV file found, just simulate processing
+        setTimeout(() => {
+          setProcessingStatus("processing")
+          setTimeout(() => setProcessingStatus("completed"), 3000)
+        }, 1000)
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error)
+      setProcessingStatus("error")
+    }
+  }
+
   // Remove file from uploaded files
   const removeFile = (filename: string) => {
-    setUploadedFiles(prev => prev.filter(file => file !== filename));
-  };
-  
+    setUploadedFiles((prev) => prev.filter((file) => file !== filename))
+  }
+
   // Reset the form
   const resetForm = () => {
-    setUploadedFiles([]);
-    setProcessingStatus('idle');
-  };
-  
+    setUploadedFiles([])
+    setProcessingStatus("idle")
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Upload Reports</h1>
         <p className="text-muted-foreground">Import patient data, lab results, and medical records</p>
       </div>
-      
+
       <Tabs defaultValue="upload" className="space-y-4">
         <TabsList className="grid grid-cols-1 sm:grid-cols-3 h-auto">
           <TabsTrigger value="upload">Upload Files</TabsTrigger>
           <TabsTrigger value="history">Upload History</TabsTrigger>
           <TabsTrigger value="settings">Upload Settings</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="upload" className="space-y-4">
           <Card>
             <CardHeader>
@@ -84,7 +119,7 @@ const UploadReports = () => {
             <CardContent className="space-y-4">
               <div
                 className={`border-2 border-dashed rounded-lg p-6 text-center ${
-                  uploading ? 'border-primary bg-primary/5' : 'border-border'
+                  uploading ? "border-primary bg-primary/5" : "border-border"
                 }`}
               >
                 {!uploading ? (
@@ -92,19 +127,13 @@ const UploadReports = () => {
                     <Upload className="mx-auto h-12 w-12 text-muted-foreground/60" />
                     <div>
                       <h3 className="text-lg font-medium">Drag files here or click to browse</h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Support for CSV, PDF, XLSX, and DICOM files
-                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">Support for CSV, PDF, XLSX, and DICOM files</p>
                     </div>
-                    <Input
-                      type="file"
-                      className="hidden"
-                      id="file-upload"
-                      onChange={handleFileUpload}
-                      multiple
-                    />
+                    <Input type="file" className="hidden" id="file-upload" onChange={handleFileUpload} multiple />
                     <Button asChild>
-                      <label htmlFor="file-upload" className="cursor-pointer">Select Files</label>
+                      <label htmlFor="file-upload" className="cursor-pointer">
+                        Select Files
+                      </label>
                     </Button>
                   </div>
                 ) : (
@@ -115,7 +144,7 @@ const UploadReports = () => {
                   </div>
                 )}
               </div>
-              
+
               {uploadedFiles.length > 0 && (
                 <div className="space-y-2">
                   <h3 className="text-sm font-medium">Uploaded Files</h3>
@@ -134,8 +163,8 @@ const UploadReports = () => {
                   </div>
                 </div>
               )}
-              
-              {processingStatus === 'processing' && (
+
+              {processingStatus === "processing" && (
                 <Alert>
                   <Clock className="h-4 w-4" />
                   <AlertTitle>Processing Files</AlertTitle>
@@ -144,8 +173,8 @@ const UploadReports = () => {
                   </AlertDescription>
                 </Alert>
               )}
-              
-              {processingStatus === 'completed' && (
+
+              {processingStatus === "completed" && (
                 <Alert className="bg-green-50 border-green-200 text-green-800">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <AlertTitle className="text-green-800">Upload Complete</AlertTitle>
@@ -154,20 +183,26 @@ const UploadReports = () => {
                   </AlertDescription>
                 </Alert>
               )}
+
+              {processingStatus === "error" && (
+                <Alert className="bg-red-50 border-red-200 text-red-800">
+                  <X className="h-4 w-4 text-red-600" />
+                  <AlertTitle className="text-red-800">Upload Failed</AlertTitle>
+                  <AlertDescription className="text-red-700">
+                    There was an error processing your files. Please check the console for details and try again.
+                  </AlertDescription>
+                </Alert>
+              )}
             </CardContent>
             <CardFooter className="flex gap-2 justify-between">
               <div className="flex gap-2">
-                <Button 
-                  variant="default" 
-                  disabled={uploadedFiles.length === 0 || uploading || processingStatus === 'processing'}
+                <Button
+                  variant="default"
+                  disabled={uploadedFiles.length === 0 || uploading || processingStatus === "processing"}
                 >
                   Process Files
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={resetForm}
-                  disabled={uploadedFiles.length === 0 || uploading}
-                >
+                <Button variant="outline" onClick={resetForm} disabled={uploadedFiles.length === 0 || uploading}>
                   Reset
                 </Button>
               </div>
@@ -178,13 +213,11 @@ const UploadReports = () => {
               </div>
             </CardFooter>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Data Templates</CardTitle>
-              <CardDescription>
-                Download standardized templates for data uploads
-              </CardDescription>
+              <CardDescription>Download standardized templates for data uploads</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -199,7 +232,7 @@ const UploadReports = () => {
                     </Button>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardContent className="p-4 flex justify-between items-center">
                     <div>
@@ -211,7 +244,7 @@ const UploadReports = () => {
                     </Button>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardContent className="p-4 flex justify-between items-center">
                     <div>
@@ -227,14 +260,12 @@ const UploadReports = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="history" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Upload History</CardTitle>
-              <CardDescription>
-                Review past uploaded files and import status
-              </CardDescription>
+              <CardDescription>Review past uploaded files and import status</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -252,7 +283,7 @@ const UploadReports = () => {
                         <SelectItem value="processing">Processing</SelectItem>
                       </SelectContent>
                     </Select>
-                    
+
                     <Select defaultValue="week">
                       <SelectTrigger className="w-full sm:w-32">
                         <SelectValue placeholder="Period" />
@@ -266,7 +297,7 @@ const UploadReports = () => {
                     </Select>
                   </div>
                 </div>
-                
+
                 <div className="border rounded-lg">
                   <div className="grid grid-cols-12 gap-2 p-3 bg-muted/50 text-sm font-medium border-b">
                     <div className="col-span-5 sm:col-span-4">File Name</div>
@@ -275,52 +306,62 @@ const UploadReports = () => {
                     <div className="hidden sm:block sm:col-span-2 text-center">Date</div>
                     <div className="hidden sm:block sm:col-span-2 text-center">Size</div>
                   </div>
-                  
+
                   <div className="divide-y max-h-80 overflow-auto">
                     <div className="grid grid-cols-12 gap-2 p-3 text-sm items-center">
                       <div className="col-span-5 sm:col-span-4 font-medium">patient_data_2023.csv</div>
                       <div className="col-span-3 sm:col-span-2 text-center">
-                        <Badge variant="outline" className="bg-green-100 text-green-800">Success</Badge>
+                        <Badge variant="outline" className="bg-green-100 text-green-800">
+                          Success
+                        </Badge>
                       </div>
                       <div className="col-span-4 sm:col-span-2 text-center">Patient Data</div>
                       <div className="hidden sm:block sm:col-span-2 text-center text-muted-foreground">2023-09-15</div>
                       <div className="hidden sm:block sm:col-span-2 text-center text-muted-foreground">1.2 MB</div>
                     </div>
-                    
+
                     <div className="grid grid-cols-12 gap-2 p-3 text-sm items-center">
                       <div className="col-span-5 sm:col-span-4 font-medium">lab_results_batch_45.xlsx</div>
                       <div className="col-span-3 sm:col-span-2 text-center">
-                        <Badge variant="outline" className="bg-green-100 text-green-800">Success</Badge>
+                        <Badge variant="outline" className="bg-green-100 text-green-800">
+                          Success
+                        </Badge>
                       </div>
                       <div className="col-span-4 sm:col-span-2 text-center">Lab Results</div>
                       <div className="hidden sm:block sm:col-span-2 text-center text-muted-foreground">2023-09-14</div>
                       <div className="hidden sm:block sm:col-span-2 text-center text-muted-foreground">3.5 MB</div>
                     </div>
-                    
+
                     <div className="grid grid-cols-12 gap-2 p-3 text-sm items-center">
                       <div className="col-span-5 sm:col-span-4 font-medium">vitals_monitoring_icu.csv</div>
                       <div className="col-span-3 sm:col-span-2 text-center">
-                        <Badge variant="outline" className="bg-green-100 text-green-800">Success</Badge>
+                        <Badge variant="outline" className="bg-green-100 text-green-800">
+                          Success
+                        </Badge>
                       </div>
                       <div className="col-span-4 sm:col-span-2 text-center">Vitals</div>
                       <div className="hidden sm:block sm:col-span-2 text-center text-muted-foreground">2023-09-14</div>
                       <div className="hidden sm:block sm:col-span-2 text-center text-muted-foreground">2.8 MB</div>
                     </div>
-                    
+
                     <div className="grid grid-cols-12 gap-2 p-3 text-sm items-center">
                       <div className="col-span-5 sm:col-span-4 font-medium">medical_reports_august.pdf</div>
                       <div className="col-span-3 sm:col-span-2 text-center">
-                        <Badge variant="outline" className="bg-green-100 text-green-800">Success</Badge>
+                        <Badge variant="outline" className="bg-green-100 text-green-800">
+                          Success
+                        </Badge>
                       </div>
                       <div className="col-span-4 sm:col-span-2 text-center">Reports</div>
                       <div className="hidden sm:block sm:col-span-2 text-center text-muted-foreground">2023-09-13</div>
                       <div className="hidden sm:block sm:col-span-2 text-center text-muted-foreground">8.6 MB</div>
                     </div>
-                    
+
                     <div className="grid grid-cols-12 gap-2 p-3 text-sm items-center">
                       <div className="col-span-5 sm:col-span-4 font-medium">patient_imaging_data.dicom</div>
                       <div className="col-span-3 sm:col-span-2 text-center">
-                        <Badge variant="outline" className="bg-green-100 text-green-800">Success</Badge>
+                        <Badge variant="outline" className="bg-green-100 text-green-800">
+                          Success
+                        </Badge>
                       </div>
                       <div className="col-span-4 sm:col-span-2 text-center">Imaging</div>
                       <div className="hidden sm:block sm:col-span-2 text-center text-muted-foreground">2023-09-12</div>
@@ -332,14 +373,12 @@ const UploadReports = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="settings" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Upload Settings</CardTitle>
-              <CardDescription>
-                Configure data upload preferences and permissions
-              </CardDescription>
+              <CardDescription>Configure data upload preferences and permissions</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-4">
@@ -360,7 +399,7 @@ const UploadReports = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <label className="text-sm">File Types Allowed</label>
                       <Select defaultValue="all">
@@ -377,9 +416,9 @@ const UploadReports = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <Separator />
-                
+
                 <div>
                   <h3 className="text-sm font-medium mb-2">Data Processing</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -395,7 +434,7 @@ const UploadReports = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <label className="text-sm">Notification Preference</label>
                       <Select defaultValue="all">
@@ -411,9 +450,9 @@ const UploadReports = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <Separator />
-                
+
                 <div>
                   <h3 className="text-sm font-medium mb-2">Data Validation</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -430,7 +469,7 @@ const UploadReports = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <label className="text-sm">On Error</label>
                       <Select defaultValue="reject">
@@ -455,7 +494,8 @@ const UploadReports = () => {
         </TabsContent>
       </Tabs>
     </div>
-  );
-};
+  )
+}
 
-export default UploadReports;
+export default UploadReports
+

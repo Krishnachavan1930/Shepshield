@@ -1,0 +1,3 @@
+medicalRecordNumber,name,age,gender,admissionDate,department,status,riskScore,riskLevel
+MRN001,Ankita Jha,45,Male,2024-03-28,Cardiology,Active,7,High
+MRN002,Sandip karale,37,Female,2024-03-25,Neurology,Discharged,4,Medium

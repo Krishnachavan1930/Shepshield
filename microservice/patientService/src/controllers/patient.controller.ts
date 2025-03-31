@@ -182,10 +182,7 @@ export const deletePatient = async(req : Request, res : Response, next : NextFun
     try{
         const patient = await Patient.findByPk(req.params.id);
         if(!patient){
-            res.status(404).json({
-                success : false,
-                message : "Patient not found"
-            });
+            next("Patient not found")
         }
         await patient!.destroy();
 

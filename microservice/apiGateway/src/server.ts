@@ -16,13 +16,6 @@ const services: { [key: string]: string } = {
   "/predictions": "http://localhost:5004",
   "/reports": "http://localhost:5005",
 };
-app.use('/reports', (req, res, next) => {
-  console.log(`Forwarding request: ${req.method} ${req.originalUrl}`);
-
-  req.url = req.originalUrl.replace('/reports', '');  // Fix path
-  console.log("Converted url", req.url);
-  next();
-});
 
 // Set up proxy routes
 Object.entries(services).forEach(([route, target]) => {

@@ -22,18 +22,16 @@ import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
 
 const DashboardHome = () => {
-  const navigate = useNavigate();
-  const [averageRiskScore, setAverageRiskScore] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate()
+  const [averageRiskScore, setAverageRiskScore] = useState(0)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchRiskScore = async () => {
       try {
-        const response = await fetch(
-          "https://your-backend-api.com/risk-score/average"
-        );
-        const data = await response.json();
-        setAverageRiskScore(data.averageRiskScore);
+        const response = await fetch("https://your-backend-api.com/risk-score/average")
+        const data = await response.json()
+        setAverageRiskScore(data.averageRiskScore)
       } catch (error) {
         console.error("Error fetching average risk score:", error);
         // Set a default value in case of error
@@ -69,9 +67,7 @@ const DashboardHome = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">128</div>
-              <p className="text-xs text-muted-foreground">
-                +12% from last month
-              </p>
+              <p className="text-xs text-muted-foreground">+12% from last month</p>
               <Progress className="mt-2" value={72} />
             </CardContent>
           </Card>
@@ -86,8 +82,8 @@ const DashboardHome = () => {
               <AlertCircle className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">7</div>
-              <p className="text-xs text-destructive">+3 new alerts today</p>
+              <div className="text-2xl font-bold">{dashboardData ? dashboardData.sepsisAlerts : 0}</div>
+              <p className="text-xs text-destructive">{dashboardData ? dashboardData.sepsisAlertsChange : 0} new alerts today</p>
               <Progress className="mt-2" value={28} />
             </CardContent>
           </Card>
@@ -122,8 +118,8 @@ const DashboardHome = () => {
               <Lightbulb className="h-4 w-4 text-yellow-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">93%</div>
-              <p className="text-xs text-muted-foreground">Accuracy rate</p>
+              <div className="text-2xl font-bold">{dashboardData ? dashboardData.predictedOutcomes : 0}</div>
+              <p className="text-xs text-muted-foreground">Number of outcomes predicted</p>
               <Progress className="mt-2" value={93} />
             </CardContent>
           </Card>
@@ -191,25 +187,34 @@ const DashboardHome = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {departments.map((dept) => (
-                  <div key={dept.name} className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <p className="font-medium">{dept.name}</p>
-                        <div className="text-xs text-muted-foreground flex items-center">
-                          {dept.trend === "up" ? (
-                            <ArrowUp className="h-3 w-3 text-destructive mr-1" />
-                          ) : (
-                            <ArrowDown className="h-3 w-3 text-green-500 mr-1" />
-                          )}
-                          <span>{dept.change}% from previous month</span>
-                        </div>
-                      </div>
-                      <p className="font-medium">{dept.cases} cases</p>
-                    </div>
-                    <Progress value={dept.percentage} />
-                  </div>
-                ))}
+              {dashboardData &&
+  Object.entries(dashboardData.departmentCounts).map(([name, cases]) => {
+    const previousCases = 10; // Replace this with actual previous month data if available
+    const change = previousCases ? (((cases - previousCases) / previousCases) * 100).toFixed(1) : 0;
+    const trend = cases > previousCases ? "up" : "down";
+    const percentage = (cases / 100) * 100; // Assuming 100 is the max, adjust as needed
+
+    return (
+      <div key={name} className="space-y-1">
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <p className="font-medium">{name}</p>
+            <div className="text-xs text-muted-foreground flex items-center">
+              {trend === "up" ? (
+                <ArrowUp className="h-3 w-3 text-destructive mr-1" />
+              ) : (
+                <ArrowDown className="h-3 w-3 text-green-500 mr-1" />
+              )}
+              <span>{change}% from previous month</span>
+            </div>
+          </div>
+          <p className="font-medium">{cases} cases</p>
+        </div>
+        <Progress value={percentage} />
+      </div>
+    );
+  })}
+
                 <Button variant="outline" className="w-full mt-4">
                   View Detailed Analytics
                 </Button>

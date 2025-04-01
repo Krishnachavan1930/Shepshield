@@ -1,3 +1,4 @@
+"use client"
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,32 +66,74 @@ const Settings = () => {
     setLoading(true);
     // Simulate API call
     setTimeout(() => {
-      setLoading(false);
-      toast.success('Profile settings saved successfully.');
-    }, 1000);
-  };
+      setLoading(false)
+      toast.success("Profile settings saved successfully.")
+    }, 1000)
+  }
 
   const handleSaveNotifications = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      toast.success('Notification settings updated successfully.');
-    }, 1000);
-  };
+    e.preventDefault()
+    setLoading(true)
 
-  const handleSaveAccount = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
     // Simulate API call
     setTimeout(() => {
-      setLoading(false);
-      toast.success('Account settings updated successfully.');
-    }, 1000);
-  };
+      setLoading(false)
+      toast.success("Notification settings updated successfully.")
+    }, 1000)
+  }
+
+  const handleSaveAccount = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    // Get form values
+    const currentPassword = (document.getElementById("currentPassword") as HTMLInputElement).value
+    const newPassword = (document.getElementById("newPassword") as HTMLInputElement).value
+    const confirmPassword = (document.getElementById("confirmPassword") as HTMLInputElement).value
+
+    // Validate passwords
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error("All password fields are required")
+      setLoading(false)
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match")
+      setLoading(false)
+      return
+    }
+
+    try {
+      const response = await fetch("http://localhost:5001/api/auth/update-password", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+          confirmPassword,
+        }),
+        credentials: "include", // Include cookies if using session-based auth
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to update password")
+      }
+      // Clear password fields
+      ;(document.getElementById("currentPassword") as HTMLInputElement).value = ""
+      ;(document.getElementById("newPassword") as HTMLInputElement).value = ""
+      ;(document.getElementById("confirmPassword") as HTMLInputElement).value = ""
+
+      toast.success("Password updated successfully")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update password")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -146,7 +189,7 @@ const Settings = () => {
 
                 <div className="flex justify-end">
                   <Button type="submit" disabled={loading}>
-                    {loading ? 'Saving...' : 'Save Changes'}
+                    {loading ? "Saving..." : "Save Changes"}
                   </Button>
                 </div>
               </form>) : ( <p>Loading user  Data</p> )}
@@ -166,23 +209,27 @@ const Settings = () => {
                   <div className="space-y-4">
                     <h3 className="text-sm font-medium">Email Notifications</h3>
                     <Separator />
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
                         <Label className="text-base">Patient Alerts</Label>
-                        <p className="text-sm text-muted-foreground">Receive alerts when a patient's sepsis risk increases</p>
+                        <p className="text-sm text-muted-foreground">
+                          Receive alerts when a patient's sepsis risk increases
+                        </p>
                       </div>
                       <Switch defaultChecked={true} />
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
                         <Label className="text-base">System Updates</Label>
-                        <p className="text-sm text-muted-foreground">Get notified about system updates and maintenance</p>
+                        <p className="text-sm text-muted-foreground">
+                          Get notified about system updates and maintenance
+                        </p>
                       </div>
                       <Switch defaultChecked={true} />
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
                         <Label className="text-base">Weekly Reports</Label>
@@ -191,11 +238,11 @@ const Settings = () => {
                       <Switch defaultChecked={false} />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-4 pt-4">
                     <h3 className="text-sm font-medium">In-App Notifications</h3>
                     <Separator />
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
                         <Label className="text-base">Real-time Alerts</Label>
@@ -203,7 +250,7 @@ const Settings = () => {
                       </div>
                       <Switch defaultChecked={true} />
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
                         <Label className="text-base">Patient Updates</Label>
@@ -211,7 +258,7 @@ const Settings = () => {
                       </div>
                       <Switch defaultChecked={true} />
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
                         <Label className="text-base">System Messages</Label>
@@ -221,10 +268,10 @@ const Settings = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex justify-end mt-6">
                   <Button type="submit" disabled={loading}>
-                    {loading ? 'Saving...' : 'Save Preferences'}
+                    {loading ? "Saving..." : "Save Preferences"}
                   </Button>
                 </div>
               </form>
@@ -243,7 +290,7 @@ const Settings = () => {
                 <div className="space-y-4">
                   <h3 className="text-sm font-medium">Password</h3>
                   <Separator />
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="currentPassword">Current Password</Label>
@@ -258,11 +305,11 @@ const Settings = () => {
                       <Input id="confirmPassword" type="password" />
                     </div>
                   </div>
-                  
+
                   <div className="pt-4 space-y-4">
                     <h3 className="text-sm font-medium">Session</h3>
                     <Separator />
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="timezone">Timezone</Label>
                       <Select defaultValue="America/New_York">
@@ -278,7 +325,7 @@ const Settings = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
                         <Label className="text-base">Two-Factor Authentication</Label>
@@ -286,26 +333,28 @@ const Settings = () => {
                       </div>
                       <Switch defaultChecked={false} />
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
                         <Label className="text-base">Auto-logout</Label>
-                        <p className="text-sm text-muted-foreground">Automatically log out after 1 hour of inactivity</p>
+                        <p className="text-sm text-muted-foreground">
+                          Automatically log out after 1 hour of inactivity
+                        </p>
                       </div>
                       <Switch defaultChecked={true} />
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex justify-end pt-4">
                   <Button type="submit" disabled={loading}>
-                    {loading ? 'Saving...' : 'Save Settings'}
+                    {loading ? "Saving..." : "Save Settings"}
                   </Button>
                 </div>
               </form>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle className="text-destructive">Danger Zone</CardTitle>
@@ -320,13 +369,15 @@ const Settings = () => {
                   </div>
                   <Button variant="outline">Log Out All</Button>
                 </div>
-                
+
                 <Separator />
-                
+
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium text-destructive">Delete Account</h4>
-                    <p className="text-sm text-muted-foreground">Permanently delete your account and all associated data</p>
+                    <p className="text-sm text-muted-foreground">
+                      Permanently delete your account and all associated data
+                    </p>
                   </div>
                   <Button variant="destructive">Delete Account</Button>
                 </div>
@@ -360,7 +411,7 @@ const Settings = () => {
                     </Button>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>Font Size</Label>
                   <div className="grid grid-cols-3 gap-2">
@@ -378,7 +429,7 @@ const Settings = () => {
                     </Button>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>Color Accent</Label>
                   <div className="grid grid-cols-4 gap-2">
@@ -400,7 +451,7 @@ const Settings = () => {
                     </Button>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label className="text-base">Animations</Label>
@@ -408,7 +459,7 @@ const Settings = () => {
                   </div>
                   <Switch defaultChecked={true} />
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label className="text-base">Compact Mode</Label>
@@ -416,7 +467,7 @@ const Settings = () => {
                   </div>
                   <Switch defaultChecked={false} />
                 </div>
-                
+
                 <div className="flex justify-end pt-4">
                   <Button>Save Preferences</Button>
                 </div>
@@ -426,7 +477,8 @@ const Settings = () => {
         </TabsContent>
       </Tabs>
     </div>
-  );
-};
+  )
+}
 
-export default Settings;
+export default Settings
+

@@ -8,8 +8,8 @@ router.get('/', GetAllDoctors);
 router.get('/:id', getDoctor);
 
 router.use(protect);
-router.post('/', restrictIo('admin'), createDoctor);
-router.put('/:id', restrictIo('admin'), updateDoctor);
+router.post('/', restrictIo('admin', 'doctor'), createDoctor);
+router.put('/:id', restrictIo('admin', 'doctor'), updateDoctor);
 router.delete('/:id', restrictIo('admin'), deleteDoctor);
 
 export default router;

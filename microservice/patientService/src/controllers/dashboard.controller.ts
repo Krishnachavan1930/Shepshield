@@ -38,7 +38,9 @@ const getDashboardStats = async (req: Request, res: Response) => {
       attributes: [[fn("AVG", col("riskScore")), "avgRiskScore"]],
       where: { id: { [Op.between]: [1, 10] } },
       raw: true,
+      logging: console.log, // Enable SQL query logging
     }) as { avgRiskScore?: number } | null;
+    
     const averageRiskScore = riskScoreResult?.avgRiskScore || 0;
 
     const sepsisAlerts = await Patient.count({

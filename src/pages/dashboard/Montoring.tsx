@@ -180,18 +180,20 @@ const Monitoring = () => {
         // Assuming the patient details include vitals and progress data
         // You might need additional endpoints depending on your backend structure
         const vitalsData = patientDetails.vitalsHistory || []; // Adjust field name
-        const progress = (await patientService.getPatientProgress(selectedPatient)).data.data; // Adjust field name
+        const progress = (
+          await patientService.getPatientProgress(selectedPatient)
+        ).data.data; // Adjust field name
 
         setChartData(
-          vitalsData.map((vital : any) => ({
+          vitalsData.map((vital: any) => ({
             time: vital.recordedAt, // Adjust based on actual field
             temperature: vital.Temp,
             heartRate: vital.HR,
             respRate: vital.Resp,
             SBP: vital.SBP,
             oxygenSat: vital.O2Sat,
-            DBP : vital.DBP,
-            MAP : vital.MAP
+            DBP: vital.DBP,
+            MAP: vital.MAP,
           }))
         );
 
@@ -406,9 +408,7 @@ const Monitoring = () => {
           [
             "Blood Pressure",
             patient.vitals.SBP,
-            patient.vitals.SBP < 90
-              ? "Hypotension"
-              : "Normal",
+            patient.vitals.SBP < 90 ? "Hypotension" : "Normal",
           ],
           [
             "Oxygen Sat",
@@ -912,20 +912,17 @@ const Monitoring = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">
-                        {patientDetails.vitals.SBP} (SBP) / {patientDetails.vitals.DBP} (DBP) mmHg
+                        {patientDetails.vitals.SBP} (SBP) /{" "}
+                        {patientDetails.vitals.DBP} (DBP) mmHg
                       </div>
                       <p
                         className={`text-xs ${
-                      
-                            patientDetails.vitals.SBP
-                           < 90
+                          patientDetails.vitals.SBP < 90
                             ? "text-destructive"
                             : "text-muted-foreground"
                         }`}
                       >
-                        {
-                          patientDetails.vitals.SBP
-                         < 90
+                        {patientDetails.vitals.SBP < 90
                           ? "Hypotension (-15)"
                           : "Normal range"}
                       </p>
@@ -1188,13 +1185,15 @@ const Monitoring = () => {
                         <div className="flex justify-between pb-2 border-b">
                           <span className="font-medium">Bilirubin Total</span>
                           <span className="font-bold">
-                            {patientDetails.labs.Bilirubin_total.toFixed(1)} mg/dL
+                            {patientDetails.labs.Bilirubin_total.toFixed(1)}{" "}
+                            mg/dL
                           </span>
                         </div>
                         <div className="flex justify-between pb-2 border-b">
                           <span className="font-medium">Bilirubin Direct</span>
                           <span className="font-bold">
-                            {patientDetails.labs.Bilirubin_direct.toFixed(1)} mg/dL
+                            {patientDetails.labs.Bilirubin_direct.toFixed(1)}{" "}
+                            mg/dL
                           </span>
                         </div>
                         <div className="flex justify-between">

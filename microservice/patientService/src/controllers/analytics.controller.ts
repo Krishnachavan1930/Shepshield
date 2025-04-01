@@ -4,6 +4,7 @@ import { Patient} from '../models/patient.model';
 
 // Get general analytics
 export const getGeneralAnalytics = async (req: Request, res: Response, next: NextFunction) => {
+  console.log("Debug");
   try {
     const totalPatients = await Patient.count();
     const activePatients = await Patient.count({ where: { status: 'Active' } });

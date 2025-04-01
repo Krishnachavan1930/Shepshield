@@ -32,7 +32,7 @@ export const getAllPatients = async (
     const page = parseInt(req.query.page as string, 10) || 1;
     const limit = parseInt(req.query.limit as string, 10) || 10;
     const offset = (page - 1) * limit;
-
+    
     const { rows: patient, count: total } = await Patient.findAndCountAll({
       where: query,
       order: [[String("id"), "ASC"]],

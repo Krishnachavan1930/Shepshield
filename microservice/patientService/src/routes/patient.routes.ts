@@ -33,7 +33,7 @@ const upload = multer({
 
 router.post('/uploadcsv',upload.single("file"), uploadCSV)
 
-router.use(protect);
+// router.use(protect);
 
 router.route('/')
     .get(getAllPatients)

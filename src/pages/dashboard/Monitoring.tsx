@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -40,11 +42,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Bell,
   Search,
-  Filter,
   RefreshCw,
   Download,
-  ChevronDown,
-  ExternalLink,
   Thermometer,
   HeartPulse,
   Activity,
@@ -55,7 +54,6 @@ import {
   TrendingUp,
   Droplets,
   Syringe,
-  Pill,
   CalendarClock,
   User,
   ShieldAlert,
@@ -63,7 +61,7 @@ import {
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
-import { patientService, reportService } from "@/services/api";
+import { patientService } from "@/services/api";
 
 // Define interfaces matching your backend data structure
 interface VitalSigns {
@@ -187,9 +185,11 @@ const Monitoring = () => {
         const basicPatient = patientResponse.data.data;
 
         // Fetch vitals history (assuming separate endpoint or included in getPatientById)
-        const vitalsResponse = await patientService.getPatientVitals(selectedPatient); // Adjust endpoint
+        const vitalsResponse = await patientService.getPatientVitals(
+          selectedPatient
+        ); // Adjust endpoint
         const vitalsData = vitalsResponse.data.data;
-        console.log("Vital Data", vitalsData)
+        console.log("Vital Data", vitalsData);
         // Fetch progress data
         const progressResponse = await patientService.getPatientProgress(
           selectedPatient
@@ -346,26 +346,26 @@ const Monitoring = () => {
     if (!patient) return;
 
     try {
-      const response = await reportService.generateReport(patient.id);
-      const reportData = response.data.data;
-
+      // Create a new PDF document
       const doc = new jsPDF({
         orientation: "portrait",
         unit: "mm",
       });
 
+      // Add a watermark
       doc.setFontSize(40);
       doc.setTextColor(200, 200, 200);
       doc.text("CONFIDENTIAL", 105, 150, { align: "center", angle: 45 });
 
+      // Reset text color for the rest of the document
       doc.setTextColor(0, 0, 0);
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
 
+      // Add header
       doc.setFontSize(16);
       doc.setFont("helvetica", "bold");
       doc.text("SEPSIS MONITORING REPORT", 105, 20, { align: "center" });
 
+      // Add metadata
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       doc.text(`Generated: ${new Date().toLocaleString()}`, 105, 25, {
@@ -375,14 +375,15 @@ const Monitoring = () => {
         align: "center",
       });
 
+      // Add patient information table
       autoTable(doc, {
-        startY: 50,
+        startY: 40,
         head: [
           ["ID", "Name", "Age/Gender", "Department", "Status", "Risk Score"],
         ],
         body: [
           [
-            patient.id,
+            patient.id.toString(),
             patient.name,
             `${patient.age}/${patient.gender}`,
             patient.department,
@@ -396,64 +397,176 @@ const Monitoring = () => {
           textColor: 255,
           fontStyle: "bold",
         },
-        columnStyles: {
-          0: { cellWidth: 15 },
-          1: { cellWidth: 30 },
-          2: { cellWidth: 15 },
-          3: { cellWidth: 25 },
-          4: { cellWidth: 20 },
-          5: { cellWidth: 20 },
-        },
       });
+
+      // Add vital signs table
+      const vitalStatus = {
+        temp:
+          patient.vitals?.Temp && patient.vitals.Temp > 38
+            ? "Elevated"
+            : "Normal",
+        hr:
+          patient.vitals?.HR && patient.vitals.HR > 100
+            ? "Tachycardia"
+            : "Normal",
+        resp:
+          patient.vitals?.Resp && patient.vitals.Resp > 20
+            ? "Tachypnea"
+            : "Normal",
+        bp:
+          patient.vitals?.SBP && patient.vitals.SBP < 90
+            ? "Hypotension"
+            : "Normal",
+        o2:
+          patient.vitals?.O2Sat && patient.vitals.O2Sat < 92
+            ? "Hypoxic"
+            : "Normal",
+        lactate:
+          patient.labs?.Lactate && patient.labs.Lactate > 2
+            ? "Elevated"
+            : "Normal",
+      };
 
       autoTable(doc, {
-        startY: 85,
-        head: [["Parameter", "Value", "Status"]],
-        body:
-          patient.vitals && patient.labs
-            ? [
-                [
-                  "Temperature",
-                  `${patient.vitals.Temp}°C`,
-                  patient.vitals.Temp > 38 ? "Elevated" : "Normal",
-                ],
-                [
-                  "Heart Rate",
-                  `${patient.vitals.HR} bpm`,
-                  patient.vitals.HR > 100 ? "Tachycardia" : "Normal",
-                ],
-                [
-                  "Resp. Rate",
-                  `${patient.vitals.Resp} /min`,
-                  patient.vitals.Resp > 20 ? "Tachypnea" : "Normal",
-                ],
-                [
-                  "Blood Pressure",
-                  `${patient.vitals.SBP}/${patient.vitals.DBP}`,
-                  patient.vitals.SBP < 90 ? "Hypotension" : "Normal",
-                ],
-                [
-                  "Oxygen Sat",
-                  `${patient.vitals.O2Sat}%`,
-                  patient.vitals.O2Sat < 92 ? "Hypoxic" : "Normal",
-                ],
-                [
-                  "Lactate",
-                  `${patient.labs.Lactate.toFixed(1)} mmol/L`,
-                  patient.labs.Lactate > 2 ? "Elevated" : "Normal",
-                ],
-              ]
-            : [],
-        columnStyles: {
-          0: { cellWidth: 40 },
-          1: { cellWidth: 30 },
-          2: { cellWidth: 30 },
+        startY: 60,
+        head: [["Vital Sign", "Value", "Status"]],
+        body: [
+          [
+            "Temperature",
+            `${patient.vitals?.Temp?.toFixed(1) || "N/A"}°C`,
+            vitalStatus.temp,
+          ],
+          ["Heart Rate", `${patient.vitals?.HR || "N/A"} bpm`, vitalStatus.hr],
+          [
+            "Resp. Rate",
+            `${patient.vitals?.Resp || "N/A"} /min`,
+            vitalStatus.resp,
+          ],
+          [
+            "Blood Pressure",
+            `${patient.vitals?.SBP || "N/A"}/${
+              patient.vitals?.DBP || "N/A"
+            } mmHg`,
+            vitalStatus.bp,
+          ],
+          [
+            "Oxygen Saturation",
+            `${patient.vitals?.O2Sat || "N/A"}%`,
+            vitalStatus.o2,
+          ],
+        ],
+        styles: { cellPadding: 3, fontSize: 10, valign: "middle" },
+        headStyles: {
+          fillColor: [41, 128, 185],
+          textColor: 255,
+          fontStyle: "bold",
         },
       });
 
-      const fileName = `Sepsis_Report_${patient.name.replace(" ", "_")}_${
+      // Add lab results table
+      autoTable(doc, {
+        startY: 100,
+        head: [["Laboratory Test", "Value", "Reference Range", "Status"]],
+        body: [
+          [
+            "WBC Count",
+            `${patient.labs?.WBC?.toFixed(1) || "N/A"} x10³/μL`,
+            "4.5-11.0",
+            patient.labs?.WBC &&
+            (patient.labs.WBC < 4.5 || patient.labs.WBC > 11)
+              ? "Abnormal"
+              : "Normal",
+          ],
+          [
+            "Lactate",
+            `${patient.labs?.Lactate?.toFixed(1) || "N/A"} mmol/L`,
+            "0.5-2.0",
+            vitalStatus.lactate,
+          ],
+          [
+            "Creatinine",
+            `${patient.labs?.Creatinine?.toFixed(2) || "N/A"} mg/dL`,
+            "0.7-1.3",
+            patient.labs?.Creatinine && patient.labs.Creatinine > 1.3
+              ? "Elevated"
+              : "Normal",
+          ],
+          [
+            "Platelets",
+            `${patient.labs?.Platelets?.toFixed(0) || "N/A"} x10³/μL`,
+            "150-450",
+            patient.labs?.Platelets && patient.labs.Platelets < 150
+              ? "Low"
+              : "Normal",
+          ],
+        ],
+        styles: { cellPadding: 3, fontSize: 10, valign: "middle" },
+        headStyles: {
+          fillColor: [41, 128, 185],
+          textColor: 255,
+          fontStyle: "bold",
+        },
+      });
+
+      // Add sepsis risk assessment
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("Sepsis Risk Assessment", 20, 140);
+
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Current Risk Score: ${patient.riskScore}%`, 20, 147);
+
+      // Add risk level
+      let riskLevel = "Low";
+      if (patient.riskScore >= 80) riskLevel = "Very High";
+      else if (patient.riskScore >= 60) riskLevel = "High";
+      else if (patient.riskScore >= 40) riskLevel = "Moderate";
+
+      doc.text(`Risk Level: ${riskLevel}`, 20, 153);
+
+      // Add recommendations
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("Recommendations", 20, 165);
+
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+
+      const recommendations = [
+        "Monitor vital signs every 4 hours",
+        "Repeat lactate measurement in 6 hours",
+        "Continue broad-spectrum antibiotics",
+        "Maintain fluid resuscitation as needed",
+        "Reassess sepsis risk score in 12 hours",
+      ];
+
+      recommendations.forEach((rec, index) => {
+        doc.text(`• ${rec}`, 25, 172 + index * 6);
+      });
+
+      // Add footer
+      doc.setFontSize(8);
+      doc.text(
+        "This report is generated for clinical decision support only. Always verify with clinical judgment.",
+        105,
+        280,
+        { align: "center" }
+      );
+      doc.text(
+        `Report generated on ${new Date().toLocaleString()} by Sepsis Monitoring System`,
+        105,
+        285,
+        {
+          align: "center",
+        }
+      );
+
+      // Save the PDF
+      const fileName = `Sepsis_Report_${patient.name.replace(/\s+/g, "_")}_${
         new Date().toISOString().split("T")[0]
       }.pdf`;
+
       doc.save(fileName);
 
       toast.success("Report Generated", {
@@ -573,8 +686,7 @@ const Monitoring = () => {
                 {Math.round(
                   patients
                     .filter((p) => p.status === "Active")
-                    .reduce((acc, p) => acc + p.riskScore, 0) /
-                    (patients.filter((p) => p.status === "At Risk").length || 1)
+                    .reduce((acc, p) => acc + p.riskScore, 0) / 10
                 )}
               </p>
             </CardContent>
@@ -721,26 +833,33 @@ const Monitoring = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <Alert
-                variant="destructive"
-                className="border-destructive/30 bg-destructive/10"
-              >
-                <Bell className="h-4 w-4" />
-                <AlertTitle className="font-medium text-destructive">
-                  Critical Alert
-                </AlertTitle>
-                <AlertDescription className="text-destructive/90">
-                  Jessica Martinez showing signs of severe sepsis. Immediate
-                  attention required.
-                </AlertDescription>
-                <div className="mt-2 text-xs text-destructive/70 flex items-center gap-2">
-                  <Clock className="h-3 w-3" /> 5 minutes ago
+              {patients
+                .filter((patient) => patient.status === "Critical")
+                .map((patient) => (
+                  <Alert
+                    key={patient.id}
+                    variant="destructive"
+                    className="border-destructive/30 bg-destructive/10"
+                  >
+                    <Bell className="h-4 w-4" />
+                    <AlertTitle className="font-medium text-destructive">
+                      Critical Alert
+                    </AlertTitle>
+                    <AlertDescription className="text-destructive/90">
+                      {patient.name} showing signs of severe sepsis. Immediate
+                      attention required.
+                    </AlertDescription>
+                    <div className="mt-2 text-xs text-destructive/70 flex items-center gap-2">
+                      <Clock className="h-3 w-3" /> {patient.lastUpdated}
+                    </div>
+                  </Alert>
+                ))}
+              {patients.filter((patient) => patient.status === "Critical")
+                .length === 0 && (
+                <div className="p-4 text-center text-muted-foreground">
+                  No critical patients at this time
                 </div>
-              </Alert>
-              {/* Add more alerts as needed */}
-              {/* <Button variant="outline" className="w-full justify-between">
-                View all alerts <ChevronDown className="h-4 w-4 ml-2" />
-              </Button> */}
+              )}
             </div>
           </CardContent>
         </Card>
@@ -766,9 +885,9 @@ const Monitoring = () => {
                 </CardDescription>
               </div>
               <div className="flex mt-2 sm:mt-0 gap-2">
-                <Button size="sm" variant="outline" className="gap-1">
+                {/* <Button size="sm" variant="outline" className="gap-1">
                   <ClipboardList className="h-4 w-4" /> Records
-                </Button>
+                </Button> */}
                 <Button
                   size="sm"
                   onClick={() => generateFullReport(patientDetails)}

@@ -1,14 +1,15 @@
-import express, { Request, Response } from "express";
 import dotenv from "dotenv";
+import express, { Request, Response } from "express";
+
 import cors from "cors";
 import morgan from "morgan";
+dotenv.config({path : "./.env"});
 
 // Import Routes
 import emailRoutes from "./routes/emailRoutes";
 import whatsappRoutes from "./routes/whatsappRoutes";
 
 // Load environment variables
-dotenv.config();
 
 const app = express();
 
@@ -17,7 +18,7 @@ app.use(express.json()); // Parse JSON request bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded data
 app.use(cors()); // Enable Cross-Origin Resource Sharing
 app.use(morgan("dev")); // Log requests
-
+console.log(process.env.PORT);
 // Routes
 app.use("/api/email", emailRoutes);
 app.use("/api/wp", whatsappRoutes);

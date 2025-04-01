@@ -15,8 +15,8 @@ const PORT = process.env.PORT;
 
 app.use(
   cors({
-    origin: 'http://localhost:8080', // Allow only your frontend
-    credentials: true, // If using cookies or Authorization headers
+    origin: 'http://localhost:8080', 
+    credentials: true, 
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed methods
     allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
   })

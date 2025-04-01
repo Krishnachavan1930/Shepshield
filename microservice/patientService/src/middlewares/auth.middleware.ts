@@ -1,11 +1,12 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
+import dotenv,{ configDotenv } from "dotenv";
+configDotenv();
 declare namespace Express {
     export interface Request {
         user?: any;
     }
 }
-
 export const protect = async (req: Request, res: Response, next: NextFunction) => {
     try {
         let token;
@@ -13,6 +14,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
             token = req.headers.authorization.split(' ')[1];
             console.log("Protect token", token);
         }
+        
         if (!token) {
             res.status(401).json({
                 success: false,
@@ -20,9 +22,9 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
             });
         }
 
-        
         const decoded_token = jwt.verify(token as string, process.env.JWT_SECRET as string) as JwtPayload;
         console.log(decoded_token);
+        
         if (!decoded_token) {
             res.status(401).json({
                 success: false,
@@ -30,6 +32,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
             });
         }
 
+        console.log(decoded_token);
         
         req.user = {
             id: decoded_token.id,

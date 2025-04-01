@@ -11,8 +11,13 @@ export const protect = async(req : Request, res : Response, next : NextFunction)
     try{
         let token;
         if(req.headers.authorization && req.headers.authorization.startsWith('Bearer')){
-            token = req.headers.authorization.split(' ')[1];
+            token = req.headers.authorization.split(" ")[1];
         }
+
+        if (!token && req.cookies && req.cookies.token) {
+            token = req.cookies.token;
+        }
+
         if(!token){
             res.status(401).json({
                 success : false,
@@ -31,7 +36,7 @@ export const protect = async(req : Request, res : Response, next : NextFunction)
             });
         }
 
-        req.user = currentUser;
+        (req as any).user = currentUser;
         console.log(req.user);
         next();
     }catch(err){

@@ -131,15 +131,30 @@ export const GetMe = async(req : Request, res : Response, next : NextFunction)=>
 
 export const updatePassword = async(req : Request, res : Response, next : NextFunction)=>{
     try{
-        const {curretPassword, newPassword} = req.body;
-        const user = await User.findByPk(req.user.id);
-        if(!user){
+        const {currentPassword, newPassword, confirmPassword} = req.body;
+
+        if (!currentPassword|| !newPassword || !confirmPassword) {
+            res.status(400).json({ message: "All fields are required" });
+        }
+
+        if (newPassword !== confirmPassword) {
+            res.status(400).json({ message: "New passwords do not match" });
+          }
+
+        
+       
+        if(!req.user){
             res.status(404).json({
                 success : false,
                 message : "User not found"
             });
         }
-        const isCorrect = await bcrypt.compare(curretPassword, user!.getDataValue('password'));
+        console.log("User");
+        console.log(req.user);
+        const user = await User.findByPk(req.user.dataValues.id);
+
+        const isCorrect = await bcrypt.compare(currentPassword, user!.getDataValue('password_hash'));
+
         if(!isCorrect){
             res.status(401).json({
                 success : false,
@@ -147,9 +162,15 @@ export const updatePassword = async(req : Request, res : Response, next : NextFu
             });
         }
 
-        user!.password = newPassword;
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user!.password = hashedPassword;
         await user!.save();
+
+
         createSendToken(user!, 200, res);
+
+        res.json({ message: "Password updated successfully" });
+
     }catch(err){
         next(err);
     }

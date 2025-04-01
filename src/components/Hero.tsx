@@ -37,12 +37,12 @@ const Hero = () => {
             </p>
             
             <div className="flex flex-wrap gap-4 pt-4">
-              <Button size="lg" asChild>
+              {/* <Button size="lg" asChild>
                 <Link to="/dashboard">
                   Try Dashboard
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
-              </Button>
+              </Button> */}
               <Button size="lg" variant="outline" asChild>
                 <a href="#contact">Contact Us</a>
               </Button>

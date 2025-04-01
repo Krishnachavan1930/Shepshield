@@ -573,8 +573,7 @@ const Monitoring = () => {
                 {Math.round(
                   patients
                     .filter((p) => p.status === "Active")
-                    .reduce((acc, p) => acc + p.riskScore, 0) /
-                    (patients.filter((p) => p.status === "At Risk").length || 1)
+                    .reduce((acc, p) => acc + p.riskScore, 0) / 10
                 )}
               </p>
             </CardContent>

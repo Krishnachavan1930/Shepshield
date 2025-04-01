@@ -96,6 +96,6 @@ app.get('/api/checkStatus', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-app.listen(PORT, () => {
-  console.log(`API Gateway running at http://localhost:${PORT}`);
+app.listen(5454, () => {
+  console.log(`API Gateway running at http://localhost:5454`);
 });

@@ -1,4 +1,4 @@
-import { configDotenv } from "dotenv";
+import dotenv from "dotenv";
 import express from "express";
 import AuthRoutes from "./routes/auth.routes";
 import DoctorRoutes from "./routes/doctors.routes";
@@ -6,7 +6,11 @@ import sequelize from "./config/db";
 import morgan from "morgan";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-configDotenv();
+
+// Log the path to see where it is loading the .env file from
+
+// Load the .env file
+dotenv.config();
 
 const PORT = process.env.PORT || 5001;
 const app = express();
@@ -18,6 +22,7 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
   })
 );
+
 app.use(express.json());
 app.use(express.urlencoded({extended : true}));
 app.use(morgan('dev'));

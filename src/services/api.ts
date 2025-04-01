@@ -37,11 +37,14 @@ export const authService = {
   logout: () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    return api.post("/auth/auth/logout");
+    return api.post("/auth/api/auth/logout");
   },
   getCurrentUser: async () => {
-    return api.get("/auth/auth/me");
+    return api.get("/auth/api/auth/me");
   },
+  updateUser : async(id : number)=>{
+    return api.put(`/auth/api/auth/update-me/${id}`)
+  }
 };
 
 export const patientService = {
@@ -73,7 +76,7 @@ export const patientService = {
 
 export const analyticsService = {
   getAnalytics: async () => {
-    return api.get("/patients/api/analytics");
+    return api.get("/patients/api/analytics/");
   },
   getMonthlyData: async () => {
     return api.get("/patients/api/analytics/monthly");

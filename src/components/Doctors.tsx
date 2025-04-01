@@ -5,6 +5,7 @@ import SectionHeading from './SectionHeading';
 import AnimatedSection from './AnimatedSection';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { authService } from '@/services/api';
 
 interface DoctorCardProps {
   image: string;
@@ -66,42 +67,10 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
   </AnimatedSection>
 );
 
-const Doctors = () => {
-  const doctors = [
-    {
-      image: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      name: "Dr. Sarah Johnson",
-      role: "Chief of Infectious Disease",
-      specialty: "Infectious Disease, Sepsis Management",
-      experience: "15+ years",
-      email: "s.johnson@sepsiscare.med"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1594824476967-48c8b964273f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      name: "Dr. Michael Chen",
-      role: "Medical Director",
-      specialty: "Internal Medicine, Critical Care",
-      experience: "12+ years",
-      email: "m.chen@sepsiscare.med"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      name: "Dr. Amara Okafor",
-      role: "AI Research Lead",
-      specialty: "Medical Informatics, ML Applications",
-      experience: "8+ years",
-      email: "a.okafor@sepsiscare.med"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      name: "Dr. James Wilson",
-      role: "Emergency Medicine Specialist",
-      specialty: "Emergency Medicine, Rapid Response",
-      experience: "10+ years",
-      email: "j.wilson@sepsiscare.med"
-    }
-  ];
-
+const Doctors = async() => {
+  const doctorData = await authService.getCurrentUser();
+  const doctors = doctorData.data.data;
+  console.log(doctors);
   return (
     <section id="doctors" className="section bg-muted/30">
       <div className="container-wide">

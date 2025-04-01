@@ -4,43 +4,46 @@ import User from "../models/user.model";
 import { Request, Response, NextFunction } from "express";
 declare namespace Express {
     export interface Request {
-      user?: any; // You can replace `any` with a proper `User` type if you have it
+      user?: any; 
     }
   }
-export const protect = async(req : Request, res : Response, next : NextFunction)=>{
-    try{
-        let token;
-        if(req.headers.authorization && req.headers.authorization.startsWith('Bearer')){
+  export const protect = async (req: Request, res: Response, next: NextFunction): Promise<Response | any> => {
+    try {
+        let token: string | undefined;
+        if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
             token = req.headers.authorization.split(' ')[1];
         }
-        if(!token){
-            res.status(401).json({
-                success : false,
-                message : "Invalid Authorization. Please login first or strict action will be taken"
+        if (!token && req.cookies.token) {
+            token = req.cookies.token;
+        }
+        console.log("Extracted token:", token);  
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid Authorization. Please login first or strict action will be taken",
             });
         }
-
-        const decoded_token = jwt.verify(token as string, process.env.JWT_SECRET as string) as jwt.JwtPayload;
-
-
+        const decoded_token = jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload;
+        console.log("Decoded token:", decoded_token);  
         const currentUser = await User.findByPk(decoded_token.id);
-        if(!currentUser){
-            res.status(401).json({
-                success : false,
-                message : "The user belonging to this token no longer exists"
+        if (!currentUser) {
+            return res.status(401).json({
+                success: false,
+                message: "The user belonging to this token no longer exists",
             });
         }
-
-        req.user = currentUser;
-        console.log(req.user);
+        req.user = currentUser.dataValues;
         next();
-    }catch(err){
+    } catch (err) {
+        console.error(err);
         res.status(500).json({
-            success : false,
-            message : "Something went wrong"
+            success: false,
+            message: "Something went wrong",
         });
     }
-}
+};
+
+  
 
 export const restrictIo = (...roles:any)=>{
     return (req : Request, res : Response, next : NextFunction)=>{

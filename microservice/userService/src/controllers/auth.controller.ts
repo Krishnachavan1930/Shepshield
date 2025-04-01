@@ -10,19 +10,19 @@ const signToken = (id:string, email : string, role : string) =>{
 };
 
 const createSendToken = (user: User, statusCode: number, res: Response): void => {
-    const token = signToken(user.getDataValue("id"), user.getDataValue("email"), user.getDataValue("role")); 
+    const token = signToken(user.getDataValue("id"), user.getDataValue("email"), user.getDataValue("role"));
 
-    user.setDataValue("password_hash", undefined); 
+    user.setDataValue("password_hash", undefined); // ✅ Hide password
     console.log(token);
-    console.log(res.headersSent);
+
     if (!res.headersSent) {
         console.log("Sending cookie");
         res.status(statusCode)
             .cookie("token", token, {
-                httpOnly: true, 
-                secure: process.env.NODE_ENV === "production", 
-                sameSite: "strict", 
-                maxAge: 30 * 24 * 60 * 60 * 1000, 
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
             })
             .json({
                 success: true,
@@ -72,58 +72,71 @@ export const Register = async(req : Request, res : Response, next : NextFunction
 
 
 
-export const Login = async (req: Request, res: Response, next: NextFunction) => {
+export const Login = async (req: Request, res: Response, next: NextFunction):Promise<Response | any> => {
     try {
         const { email, password } = req.body;
+        console.log(email, password);
 
         if (!email || !password) {
-            res.status(400).json({
+            return res.status(400).json({
                 success: false,
-                message: "Please provide email and password"
+                message: "Please provide email and password",
             });
         }
 
         const user = await User.findOne({ where: { email } });
+
         console.log(user);
+
         if (!user || !user.getDataValue("password_hash")) {
-            res.status(404).json({
+            return res.status(404).json({
                 success: false,
-                message: "User not found or password missing"
+                message: "User not found or password missing",
             });
         }
 
         // ✅ Use bcrypt.compare (async)
-        const isCorrect = await bcrypt.compare(password, user!.getDataValue("password_hash"));
+        const isCorrect = await bcrypt.compare(password, user.getDataValue("password_hash"));
 
         if (!isCorrect) {
-            res.status(401).json({
+            return res.status(401).json({
                 success: false,
-                message: "Incorrect email or password"
+                message: "Incorrect email or password",
             });
         }
 
-        return createSendToken(user!, 200, res);
+        req.user = user;
+        return createSendToken(user, 200, res);
     } catch (err) {
         next(err);
     }
 };
 
 
-export const Logout = (req : Request, res : Response)=>{
+export const Logout = (req: Request, res: Response) => {
+    res.clearCookie("token"); // ✅ Properly clear the token cookie
     res.status(200).json({
-        success : true,
-        message : "Logged out successfully"
+        success: true,
+        message: "Logged out successfully",
     });
-}
+};
 
-export const GetMe = async(req : Request, res : Response, next : NextFunction)=>{
-    try{
-        const user = await User.findByPk(req.user.id);
+export const GetMe = async (req: Request, res: Response, next: NextFunction): Promise<Response | any> => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized: No user found",
+            });
+        }
+
+        console.log(req.user);
+
         res.status(200).json({
-            success : true,
-            user
+            success: true,
+            user: req.user,
         });
-    }catch(err){
+    } catch (err) {
         next(err);
     }
 };
@@ -155,28 +168,34 @@ export const updatePassword = async(req : Request, res : Response, next : NextFu
     }
 };
 
-export const updateMe = async(req : Request, res : Response, next : NextFunction)=>{
+export const updateMe = async(req : Request, res : Response, next : NextFunction) : Promise<Response | any>=>{
     try{
+        console.log("Req body");
+        console.log(req.body);
         if(req.body.password){
-            res.status(400).json({
+            return res.status(400).json({
                 success : false,
                 message : "This is not for password updates, Please use /updatePassword route"
             });
         }
 
         const filteredBody:Record<string, any> = {};
-        const allowedFields = ['name', 'email', 'department', 'avatar'];
+        const allowedFields = ['name', 'email', 'department', 'avatar', 'speciality', 'bio', 'phone'];
         Object.keys(req.body).forEach(key =>{
             if(allowedFields.includes(key)){
                 filteredBody[key] = req.body[key];
             }
         });
-
-        const updatedUser = await User.update(filteredBody, {
+        console.log("Req user ID");
+        console.log(filteredBody);
+        console.log(req.body);
+        const updatedUser =await User.update(filteredBody, {
             where : { id : req.user.id },
             returning : true
         });
-        res.status(200).json({
+
+        const user = updatedUser[0]
+        return res.status(200).json({
             sucess : true,
             user : updatedUser
         });

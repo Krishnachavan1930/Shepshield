@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
@@ -9,14 +9,60 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+import { authService } from '@/services/api';
 
 const Settings = () => {
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>();
+  const [error, setError] = useState('');
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userData = await authService.getCurrentUser();
+        console.log(userData);
+        setUser(userData.data.user);
+      } catch (err) {
+        setError('Failed to load profile');
+      }
+    };
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+    fetchUser();
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    console.log(user);
+    setUser({
+      ...user,
+      [e.target.name]: e.target.value,
+    });
+  };
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     
+    console.log("USER to update",user);
+    try {
+      const updatedUser = {
+        name : user.name,
+        email : user.email,
+        speciality : user.speciality,
+        phone : user.phone,
+        bio : user.bio
+      };
+      console.log("Updating user", updatedUser);
+      await authService.updateUser(updatedUser);
+      toast.success('Profile updated successfully');
+    } catch (err) {
+      setError('Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveProfile = async(e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
     // Simulate API call
     setTimeout(() => {
       setLoading(false);
@@ -68,23 +114,23 @@ const Settings = () => {
               <CardDescription>Update your personal information</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSaveProfile} className="space-y-4">
+              {user ? (<form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="fullName">Full Name</Label>
-                    <Input id="fullName" defaultValue="Dr. John Doe" />
+                    <Input id="name" name='name' defaultValue={user.name} onChange={handleChange}/>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" defaultValue="john.doe@sepsiscare.med" />
+                    <Input id="email" type="email" name='email' defaultValue={user.email} onChange={handleChange}/>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="specialty">Specialty</Label>
-                    <Input id="specialty" defaultValue="Infectious Disease" />
+                    <Input id="speciality" name='speciality' defaultValue={user.speciality} onChange={handleChange} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phoneNumber">Phone Number</Label>
-                    <Input id="phoneNumber" defaultValue="+1 (555) 123-4567" />
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input id="phone" name='phone' defaultValue={user.phone as string} onChange={handleChange} />
                   </div>
                 </div>
 
@@ -93,7 +139,8 @@ const Settings = () => {
                   <textarea
                     id="bio"
                     className="w-full min-h-[100px] rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    defaultValue="Specialist in infectious diseases with over 15 years of experience in sepsis diagnosis and treatment."
+                    defaultValue={user.bio}
+                    onChange={handleChange}
                   />
                 </div>
 
@@ -102,36 +149,7 @@ const Settings = () => {
                     {loading ? 'Saving...' : 'Save Changes'}
                   </Button>
                 </div>
-              </form>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Picture</CardTitle>
-              <CardDescription>Update your profile image</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center sm:flex-row sm:items-start gap-6">
-              <div className="w-32 h-32 rounded-full overflow-hidden bg-muted">
-                <img 
-                  src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=96&h=96&auto=format&fit=crop" 
-                  alt="Profile"
-                  className="w-full h-full object-cover" 
-                />
-              </div>
-              <div className="space-y-4 flex-1">
-                <div className="space-y-2">
-                  <Label htmlFor="picture">Upload new picture</Label>
-                  <Input id="picture" type="file" />
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Recommended dimensions: 256x256px. Maximum file size: 2MB.
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline">Remove</Button>
-                  <Button>Upload</Button>
-                </div>
-              </div>
+              </form>) : ( <p>Loading user  Data</p> )}
             </CardContent>
           </Card>
         </TabsContent>

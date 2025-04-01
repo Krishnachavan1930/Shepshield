@@ -30,13 +30,11 @@ export const getAllPatients = async (
     }
 
     const page = parseInt(req.query.page as string, 10) || 1;
-    const limit = parseInt(req.query.limit as string, 10) || 10;
-    const offset = (page - 1) * limit;
+    const offset = (page - 1);
     
     const { rows: patient, count: total } = await Patient.findAndCountAll({
       where: query,
       order: [[String("id"), "ASC"]],
-      limit,
       offset,
     });
 
@@ -44,7 +42,7 @@ export const getAllPatients = async (
       success: true,
       count: patient.length,
       total,
-      totalPages: Math.ceil(total / limit),
+      totalPages: Math.ceil(total),
       currentPage: page,
       data: patient,
     });
@@ -361,7 +359,6 @@ export const getPatientProgress = async (
     const vitalSigns = await VitalSigns.findAll({
       where: { patientId },
       order: [["recordedAt", "ASC"]],
-      limit: 10,
       raw: true, // Raw data to avoid Sequelize instance issues
     });
 

@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { authService } from "@/services/api";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -100,9 +101,6 @@ const ProfileWithModal = ({ doctorProfile, isModalOpen, setIsModalOpen }) => {
                   <strong>Phone:</strong> {doctorProfile.phone}
                 </p>
                 <p>
-                  <strong>Experience:</strong> {doctorProfile.experience}
-                </p>
-                <p>
                   <strong>Bio:</strong> {doctorProfile.bio}
                 </p>
               </div>
@@ -114,6 +112,17 @@ const ProfileWithModal = ({ doctorProfile, isModalOpen, setIsModalOpen }) => {
   );
 };
 
+interface Response  {
+  name : string;
+  role : string;
+  email : string;
+  department : string;
+  phone : string;
+  bio : string;
+}
+
+
+
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -122,19 +131,38 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
 
-  const user = JSON.parse(
-    localStorage.getItem("user") ||
-      '{"name": "Dr. John Doe", "department": "Infectious Disease"}'
-  );
+  const [user, setUser] = useState<any>({
+    name: '',
+    department: '',
+    role : "",
+    phone : "",
+    bio : "",
+    avatar:"https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=96&h=96&auto=format&fit=crop",
+  });
 
+  useEffect(() => {
+    // Fetch the current user when the component mounts
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await authService.getCurrentUser();
+        console.log(response);
+        // Assuming the response is the user object, otherwise adjust accordingly
+        setUser(response.data.user);
+      } catch (error) {
+        console.error('Error fetching current user:', error);
+        // Optionally handle the error (e.g., set default user, show a message, etc.)
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
   const doctorProfile = {
-    name: user.name || "Dr. John Doe",
-    role: "Chief Physician",
-    email: "john.doe@hospital.com",
-    department: user.department || "Infectious Disease",
-    phone: "+1 (555) 123-4567",
-    experience: "15 years",
-    bio: "Dr. John Doe is a seasoned physician specializing in emergency medicine with a focus on sepsis detection and critical care.",
+    name: user.name,
+    role: user.role,
+    email: user.email,
+    department: user.department,
+    phone: user.phone,
+    bio: user.bio,
     avatar:
       "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=96&h=96&auto=format&fit=crop",
   };

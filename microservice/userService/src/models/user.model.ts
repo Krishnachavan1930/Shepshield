@@ -38,7 +38,16 @@ User.init({
     avatar : {
         type : DataTypes.STRING,
         defaultValue : "default-avatar.jpg"
-    }
+    },
+    phone : {
+      type : DataTypes.STRING,
+    },
+    speciality : {
+      type : DataTypes.STRING,
+    },
+    bio : {
+      type : DataTypes.STRING,
+    },
   },
   {
     sequelize,

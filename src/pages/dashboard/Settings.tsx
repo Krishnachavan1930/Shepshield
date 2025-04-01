@@ -137,9 +137,9 @@ const Settings = () => {
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
                   <textarea
-                    id="bio"
+                    id="bio" name='bio'
                     className="w-full min-h-[100px] rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    defaultValue={user.bio}
+                    defaultValue={user.bio as string}
                     onChange={handleChange}
                   />
                 </div>

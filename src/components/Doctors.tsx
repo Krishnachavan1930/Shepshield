@@ -4,6 +4,7 @@ import { Calendar, Mail, ExternalLink } from 'lucide-react';
 import SectionHeading from './SectionHeading';
 import AnimatedSection from './AnimatedSection';
 import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { authService } from '@/services/api';
 
@@ -67,9 +68,24 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
   </AnimatedSection>
 );
 
-const Doctors = async() => {
-  const doctorData = await authService.getCurrentUser();
-  const doctors = doctorData.data.data;
+const Doctors = () => {
+  const [doctors, setDoctors] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const doctorData = await authService.getCurrentUser();
+        setDoctors(doctorData.data.data || []); // Ensure it's an array
+      } catch (error) {
+        console.error("Error fetching doctors:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoctors();
+  }, []);
   console.log(doctors);
   return (
     <section id="doctors" className="section bg-muted/30">
@@ -82,13 +98,14 @@ const Doctors = async() => {
         </AnimatedSection>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {doctors.map((doctor, index) => (
+          {doctors && 
+          (doctors.map((doctor, index) => (
             <DoctorCard 
               key={doctor.name}
               {...doctor}
               delay={index * 100}
             />
-          ))}
+          )))}
         </div>
         
         <AnimatedSection animation="fade-in" className="text-center mt-12">

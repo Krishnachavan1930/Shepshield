@@ -42,12 +42,12 @@ export const authService = {
   getCurrentUser: async () => {
     return api.get("/auth/api/auth/me");
   },
-  updateUser : async(data : any)=>{
-    return api.put(`/auth/api/auth/update-me/`, data)
+  updateUser: async (data: any) => {
+    return api.put(`/auth/api/auth/update-me/`, data);
   },
-  updateDoctor : async()=>{
-    return api.put(`/auth/api/doctor/`)
-  }
+  updateDoctor: async () => {
+    return api.put(`/auth/api/doctor/`);
+  },
 };
 
 export const patientService = {

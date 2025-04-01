@@ -148,12 +148,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     fetchCurrentUser();
   }, []);
   const doctorProfile = {
-    name: user.name,
-    role: user.role,
-    email: user.email,
-    department: user.department,
-    phone: user.phone,
-    bio: user.bio,
+    name: user.name || "Not logged in",
+    role: user.role || "N/A",
+    email: user.email || "N/A",
+    department: user.department || "N/A",
+    phone: user.phone || "N/A",
+    bio: user.bio || "N/A",
     avatar:
       "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=96&h=96&auto=format&fit=crop",
   };

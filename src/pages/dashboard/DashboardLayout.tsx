@@ -112,15 +112,6 @@ const ProfileWithModal = ({ doctorProfile, isModalOpen, setIsModalOpen }) => {
   );
 };
 
-interface Response  {
-  name : string;
-  role : string;
-  email : string;
-  department : string;
-  phone : string;
-  bio : string;
-}
-
 
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {

@@ -37,29 +37,7 @@ import {
   PolarRadiusAxis,
 } from "recharts";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  Bell,
-  Search,
-  Filter,
-  RefreshCw,
-  Download,
-  ChevronDown,
-  ExternalLink,
-  Thermometer,
-  HeartPulse,
-  Activity,
-  Gauge,
-  AlertCircle,
-  Clock,
-  ClipboardList,
-  TrendingUp,
-  Droplets,
-  Syringe,
-  Pill,
-  CalendarClock,
-  User,
-  ShieldAlert,
-} from "lucide-react";
+import { Bell, Search, Filter, RefreshCw, Download, ChevronDown, ExternalLink, Thermometer, HeartPulse, Activity, Gauge, AlertCircle, Clock, ClipboardList, TrendingUp, Droplets, Syringe, Pill, CalendarClock, User, ShieldAlert } from 'lucide-react';
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
@@ -187,9 +165,11 @@ const Monitoring = () => {
         const basicPatient = patientResponse.data.data;
 
         // Fetch vitals history (assuming separate endpoint or included in getPatientById)
-        const vitalsResponse = await patientService.getPatientVitals(selectedPatient); // Adjust endpoint
+        const vitalsResponse = await patientService.getPatientVitals(
+          selectedPatient
+        ); // Adjust endpoint
         const vitalsData = vitalsResponse.data.data;
-        console.log("Vital Data", vitalsData)
+        console.log("Vital Data", vitalsData);
         // Fetch progress data
         const progressResponse = await patientService.getPatientProgress(
           selectedPatient
@@ -720,26 +700,29 @@ const Monitoring = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <Alert
-                variant="destructive"
-                className="border-destructive/30 bg-destructive/10"
-              >
-                <Bell className="h-4 w-4" />
-                <AlertTitle className="font-medium text-destructive">
-                  Critical Alert
-                </AlertTitle>
-                <AlertDescription className="text-destructive/90">
-                  Jessica Martinez showing signs of severe sepsis. Immediate
-                  attention required.
-                </AlertDescription>
-                <div className="mt-2 text-xs text-destructive/70 flex items-center gap-2">
-                  <Clock className="h-3 w-3" /> 5 minutes ago
+              {patients.filter(patient => patient.status === "Critical").map(patient => (
+                <Alert
+                  key={patient.id}
+                  variant="destructive"
+                  className="border-destructive/30 bg-destructive/10"
+                >
+                  <Bell className="h-4 w-4" />
+                  <AlertTitle className="font-medium text-destructive">
+                    Critical Alert
+                  </AlertTitle>
+                  <AlertDescription className="text-destructive/90">
+                    {patient.name} showing signs of severe sepsis. Immediate attention required.
+                  </AlertDescription>
+                  <div className="mt-2 text-xs text-destructive/70 flex items-center gap-2">
+                    <Clock className="h-3 w-3" /> {patient.lastUpdated}
+                  </div>
+                </Alert>
+              ))}
+              {patients.filter(patient => patient.status === "Critical").length === 0 && (
+                <div className="p-4 text-center text-muted-foreground">
+                  No critical patients at this time
                 </div>
-              </Alert>
-              {/* Add more alerts as needed */}
-              {/* <Button variant="outline" className="w-full justify-between">
-                View all alerts <ChevronDown className="h-4 w-4 ml-2" />
-              </Button> */}
+              )}
             </div>
           </CardContent>
         </Card>

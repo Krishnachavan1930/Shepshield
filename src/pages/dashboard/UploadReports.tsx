@@ -70,13 +70,13 @@ const UploadReports = () => {
 
         // Log what we're sending
         console.log("Sending to API:", {
-          url: "http://localhost:5001/api/patients/uploadcsv",
+          url: "http://localhost:5002/api/patients/uploadcsv",
           fileSize: csvFile.size,
           fileName: csvFile.name,
         })
 
         // Call the API endpoint
-        const response = await fetch("http://localhost:5001/api/patients/uploadcsv", {
+        const response = await fetch("http://localhost:5002/api/patients/uploadcsv", {
           method: "POST",
           body: formData,
         })

@@ -178,7 +178,7 @@ export const updatePassword = async(req : Request, res : Response, next : NextFu
         }
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-        user!.password = hashedPassword;
+        user!.password_hash = hashedPassword;
         await user!.save();
 
 

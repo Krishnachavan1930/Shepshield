@@ -629,9 +629,9 @@ const Monitoring = () => {
           <Button size="sm" variant="outline" onClick={refreshData}>
             <RefreshCw className="mr-2 h-4 w-4" /> Refresh
           </Button>
-          <Button size="sm" variant="outline">
+          {/* <Button size="sm" variant="outline">
             <Download className="mr-2 h-4 w-4" /> Export All
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -834,7 +834,6 @@ const Monitoring = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-<<<<<<< HEAD
               {patients.filter(patient => patient.status === "Critical").map(patient => (
                 <Alert
                   key={patient.id}
@@ -854,31 +853,7 @@ const Monitoring = () => {
                 </Alert>
               ))}
               {patients.filter(patient => patient.status === "Critical").length === 0 && (
-=======
-              {patients
-                .filter((patient) => patient.status === "Critical")
-                .map((patient) => (
-                  <Alert
-                    key={patient.id}
-                    variant="destructive"
-                    className="border-destructive/30 bg-destructive/10"
-                  >
-                    <Bell className="h-4 w-4" />
-                    <AlertTitle className="font-medium text-destructive">
-                      Critical Alert
-                    </AlertTitle>
-                    <AlertDescription className="text-destructive/90">
-                      {patient.name} showing signs of severe sepsis. Immediate
-                      attention required.
-                    </AlertDescription>
-                    <div className="mt-2 text-xs text-destructive/70 flex items-center gap-2">
-                      <Clock className="h-3 w-3" /> {patient.lastUpdated}
-                    </div>
-                  </Alert>
-                ))}
-              {patients.filter((patient) => patient.status === "Critical")
-                .length === 0 && (
->>>>>>> origin/main
+
                 <div className="p-4 text-center text-muted-foreground">
                   No critical patients at this time
                 </div>

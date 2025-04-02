@@ -35,6 +35,7 @@ export const protect = async (
       token,
       process.env.JWT_SECRET as string
     ) as jwt.JwtPayload;
+
     console.log("Decoded token:", decoded_token);
     const currentUser = await User.findByPk(decoded_token.id);
     if (!currentUser) {
@@ -43,7 +44,9 @@ export const protect = async (
         message: "The user belonging to this token no longer exists",
       });
     }
-    req.user = currentUser.dataValues;
+    console.log("Current User");
+    console.log(currentUser);
+    req.user = {...currentUser.get()};
     next();
   } catch (err) {
     console.error(err);

@@ -31,10 +31,6 @@ app.use(cookieParser());
 app.use("/api/auth", AuthRoutes);
 app.use("/api/doctors", DoctorRoutes);
 
-// Basic GET route
-app.get("/", (req, res) => {
-  res.send("SepShield API is running");
-});
 
 app.listen(PORT as number, "0.0.0.0", async() => {
   console.log(`Server running on PORT ${PORT}`);

@@ -6,6 +6,8 @@ class User extends Model{
   public password! : string;
   public role! : "doctor" | "nurse" | "admin";
   public email! : string;
+  public password_hash! : string;
+  
 }
 
 User.init({

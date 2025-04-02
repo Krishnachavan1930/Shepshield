@@ -106,6 +106,8 @@ export const Login = async (req: Request, res: Response, next: NextFunction):Pro
         }
 
         req.user = user;
+        console.log("Printing user in auth controller", user);
+
         return createSendToken(user, 200, res);
     } catch (err) {
         next(err);
@@ -164,7 +166,7 @@ export const updatePassword = async(req : Request, res : Response, next : NextFu
         }
         console.log("User");
         console.log(req.user);
-        const user = await User.findByPk(req.user.dataValues.id);
+        const user = await User.findByPk(req.user.id);
 
         const isCorrect = await bcrypt.compare(currentPassword, user!.getDataValue('password_hash'));
 

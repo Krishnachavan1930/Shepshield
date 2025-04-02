@@ -1,39 +1,45 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
-import dotenv,{ configDotenv } from "dotenv";
-configDotenv();
-declare namespace Express {
-    export interface Request {
-        user?: any;
-    }
-}
-export const protect = async (req: Request, res: Response, next: NextFunction) => {
+import dotenv from "dotenv";
+import cookieParser from "cookie-parser"; // Make sure this is installed
+import { JWT_SECRET } from "../config/config";
+dotenv.config();
+
+export const protect = async (req: Request, res: Response, next: NextFunction): Promise<Response | any> => {
     try {
         let token;
+
+        // Check Authorization header
         if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
             token = req.headers.authorization.split(' ')[1];
-            console.log("Protect token", token);
+            console.log("Token from Header:", token);
         }
-        
+
+        // Check Cookie if no token found in headers
+        if (!token && req.cookies?.token) {
+            token = req.cookies.token;
+            console.log("Token from Cookie:", token);
+        }
+
+        // If no token found
         if (!token) {
-            res.status(401).json({
+            return res.status(401).json({
                 success: false,
                 message: "Invalid Authorization. Please login first."
             });
         }
 
-        const decoded_token = jwt.verify(token as string, process.env.JWT_SECRET as string) as JwtPayload;
+        // Verify JWT
+        const decoded_token = jwt.verify(token, JWT_SECRET as string) as JwtPayload;
         console.log(decoded_token);
-        
         if (!decoded_token) {
-            res.status(401).json({
+            return res.status(401).json({
                 success: false,
                 message: "Invalid token or session expired"
             });
         }
 
-        console.log(decoded_token);
-        
+        // Attach user data to request
         req.user = {
             id: decoded_token.id,
             role: decoded_token.role,
@@ -42,12 +48,14 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
 
         next();
     } catch (err) {
+        console.error("JWT Verification Error:", err);
         res.status(500).json({
             success: false,
             message: "Something went wrong"
         });
     }
 };
+
 
 export const restrictIo = (...roles: string[]) => {
     return (req: Request, res: Response, next: NextFunction) => {
